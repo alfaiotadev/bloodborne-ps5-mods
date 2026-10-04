@@ -5,6 +5,14 @@ from ps5dbg import Dbg, CMD_SUCCESS_WIRE
 LOG = lambda *a: print(time.strftime("%H:%M:%S"), *a, flush=True)
 SIGNAMES = {4: "SIGILL", 5: "SIGTRAP", 6: "SIGABRT", 8: "SIGFPE", 10: "SIGBUS", 11: "SIGSEGV", 17: "SIGSTOP", 18: "SIGTSTP", 19: "SIGCONT"}
 REGS = ["r15", "r14", "r13", "r12", "r11", "r10", "r9", "r8", "rdi", "rsi", "rbp", "rbx", "rdx", "rcx", "rax"]
+import atexit, signal
+def _detach(*a):
+    """ALWAYS leave the game without a debugger attached: a game that is closed while a ps5debug debugger is attached is killed by the system (CRASH KILL) instead of exiting,
+    the save data stays mounted and the system flags it as broken (system_data/savedata/<uid>/db/user/savedata.db, is_broken = 1; 'The save data is corrupted. Recreate save data?')."""
+    try: LOG("detach status %#x" % Dbg().cmd(0xBDBB0002))
+    except Exception as e: LOG("detach failed:", e)
+    if a: sys.exit(0)
+atexit.register(_detach); signal.signal(signal.SIGTERM, _detach); signal.signal(signal.SIGINT, _detach)
 srv = socket.socket(); srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); srv.bind(("0.0.0.0", 755)); srv.listen(1); LOG("listening on 755")
 d = Dbg(); pid = None; t0 = time.time()
 while time.time() - t0 < 1500:

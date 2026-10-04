@@ -35,6 +35,10 @@ Console:
 * The patched onionHEN from [`../../onionhen/`](../../onionhen/) for `shot.py` / `collect_shots.py` / `onion_sample.py` (remote screenshot trigger and shared fps sample).
 * Optional: an ELF loader on port 9021 plus a `notify.elf` built from `notify/` (needs the PS5 payload SDK: `make -C notify`) for on-screen toasts. Without it the toast text is just printed on the host.
 
+## Warning: never leave a debugger attached
+
+`probes/crash_catch.py` attaches the ps5debug debugger to the game. A game that is closed while a debugger is attached is killed by the system (`CRASH KILL`) instead of exiting; the save data stays mounted and the system marks it as broken (`is_broken = 1` in `/system_data/savedata/<userid>/db/user/savedata.db`), after which the game reports "The save data is corrupted". The script now detaches on exit, but always check that no watcher is still running before you close the game, and keep a backup of the save data (`/user/home/<userid>/savedata/<title>/`) before debugging sessions.
+
 ## Environment variables
 
 | Variable | Meaning | Default |
