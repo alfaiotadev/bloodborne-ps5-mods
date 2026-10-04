@@ -58,6 +58,10 @@ The cheat file is a list of memory patches at fixed virtual addresses inside the
 | `site/` | Source of the GitHub Pages feature site. |
 | `AGENTS.md` | Entry point for AI coding agents that want to continue the work. |
 
+## Releases and changelog
+
+Prebuilt files and release notes are on the [Releases](https://github.com/alfaiotadev/bloodborne-ps5-mods/releases) page; what changed in each version is in [CHANGELOG.md](CHANGELOG.md).
+
 ## Contributing and continuing the work
 
 Bug reports, test results from other consoles/firmware and new mods are welcome - use the issue templates. The repository is set up so that any capable LLM coding agent (or a human) can pick it up: start with [AGENTS.md](AGENTS.md). Open questions and ready-made first steps are listed in [docs/agents/90-open-questions.md](docs/agents/90-open-questions.md).
