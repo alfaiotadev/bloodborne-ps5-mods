@@ -28,12 +28,12 @@ Confidence column:
 | `0x54A0400..0x54A0485` | 134 | Anisotropic stub | `make_aniso_mod.py` |
 | `0x54A0500` | 4 | Wide-FOV constant | float `pi/180*scale` |
 | `0x54A0780..0x54A0966` | 486 | Head camera: epilogue cave (FACE2) | `make_head_camera_mod.py` |
-| `0x54A0E00..0x54A0F93` | 0x194 | Head camera data block `D` | fields in section 9 |
+| `0x54A0E00..0x54A0FD7` | 0x1D8 | Head camera data block `D` | fields in section 9 |
 | `0x54A1100..0x54A111A` | 27 | Head camera: camera-cast cave | |
 | `0x54A1300..0x54A130C` | 13 | DLAA threshold cave | |
 | `0x54A1340` | 4 | DLAA threshold constant | float 0.3 |
 | `0x54A1140..0x54A1156` | 22 | Head camera: death slow motion cave (hook `0x1E196BB`) | |
-| `0x54A1600..0x54A1FFB` | 2556 | Head camera: camera-manager cave (touchpad toggle, head position, death camera, slow-motion state, aim) | written as three cheat entries (1000 + 1000 + 531 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
+| `0x54A1600..0x54A233A` | 3387 | Head camera: camera-manager cave (touchpad toggle, head position, death camera, killer selection and look-at, slow-motion state, aim) | written as three cheat entries (1000 + 1000 + 531 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
 
 ### Lab (dev-only) allocations that COLLIDE with the release ones
 
@@ -271,12 +271,22 @@ Derived from `tools/mods/make_head_camera_mod.py` (defaults of `build()`); all f
 | `+0x170` | `0x54A0F70` | DFLOOR | f32 | 0.30 | death camera: lowest camera height above the feet (m) |
 | `+0x174` | `0x54A0F74` | DFLR | f32 | runtime | that floor as a world y coordinate for this frame |
 | `+0x178` | `0x54A0F78` | TSCALE | f32 | 1.0 | global character time scale, multiplied into `[r13+0x374]` by the `0x1E196BB` hook (eased by the manager cave) |
-| `+0x17C` | `0x54A0F7C` | SLOWMIN | f32 | 0.10 | time scale while dying |
-| `+0x180` | `0x54A0F80` | SLOWHOLD | u32 | 75 | frames after the death during which SLOWMIN is the target (then FASTMAX until FASTEND) |
-| `+0x184` | `0x54A0F84` | SLOWG | f32 | 0.15 | easing factor per frame |
+| `+0x17C` | `0x54A0F7C` | PH1SCALE | f32 | 1.0 | time scale of phase 1 (the first PH1END frames after the death) |
+| `+0x180` | `0x54A0F80` | PH1END | u32 | 300 | frames after the death during which PH1SCALE is the target (then PH2SCALE until PH2END) |
+| `+0x184` | `0x54A0F84` | SLOWG | f32 | 0.25 | easing factor per frame |
 | `+0x188` | `0x54A0F88` | DCNT | u32 | runtime | manager frames since the death (real time) |
-| `+0x18C` | `0x54A0F8C` | FASTMAX | f32 | 3.0 | time scale after the slow part (fast forward) so that the death animation ends sooner |
-| `+0x190` | `0x54A0F90` | FASTEND | u32 | 240 | frames after the death at which the time scale returns to 1.0 |
+| `+0x198` | `0x54A0F98` | KILLER | u64 | runtime | ChrIns the killer camera looks at (0 = none), chosen on the first dead frame |
+| `+0x1A0` | `0x54A0FA0` | DEADP | u8 | runtime | the killer has been chosen for this death |
+| `+0x1A1` | `0x54A0FA1` | KILLCAM | u8 | 0 | killer camera on (own mod) |
+| `+0x1A4` | `0x54A0FA4` | KCNT | u32 | runtime | manager frames since the death (killer camera) |
+| `+0x1A8` | `0x54A0FA8` | LOCKAT | u32 | 0 | frame after the death at which the view turns to the killer |
+| `+0x1AC` | `0x54A0FAC` | KRANGE2 | f32 | 400.0 | squared search range (20 m) for the nearest living character |
+| `+0x1B0` | `0x54A0FB0` | KHEIGHT | vec4 | (0, 1.3, 0, 0) | offset from the killer's feet to the aim point |
+| `+0x1C0` | `0x54A0FC0` | WORLDUP | vec4 | (0, 1, 0, 0) | up vector of the killer view |
+| `+0x1D0` | `0x54A0FD0` | DALPHA2 | f32 | 0.10 | easing of the turn to the killer |
+| `+0x1D4` | `0x54A0FD4` | ALPHAUSE | f32 | runtime | easing factor in use this frame (DALPHA or DALPHA2) |
+| `+0x18C` | `0x54A0F8C` | PH2SCALE | f32 | 0.05 | time scale of phase 2 (slow motion after the YOU DIED screen has arrived) |
+| `+0x190` | `0x54A0F90` | PH2END | u32 | 720 | frames after the death at which the time scale returns to 1.0 |
 | `+0xA0` | `0x54A0EA0` | AIMMIN2 / AIMMAX2 / AIMCOS / AIMWMIN | 4 x f32 | 0.09 / 3600 / 0.3 / 0.05 | target distance window (0.3 m..60 m, squared), min cos(angle), AIMWMIN unused |
 | `+0xB0` | `0x54A0EB0` | ONE / EPS / BETA / GAMMA | 4 x f32 | 1.0 / 1e-6 / 0.3 / 0.35 | constants; BETA = aim easing; GAMMA unused |
 | `+0xC0` | `0x54A0EC0` | MASKXYZ | 4 x u32 | `FFFFFFFF x3, 0` | mask |

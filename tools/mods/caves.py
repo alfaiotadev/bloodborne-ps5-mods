@@ -17,7 +17,7 @@ class Asm:
     def rip(self, opcode, target, imm=b""):
         at = self.base + len(self.c); self.c += opcode; self.c += rip(at, len(opcode) + 4 + len(imm), target); self.c += imm
     def jcc(self, cc, label):
-        self.c += {"e": b"\x0f\x84", "ne": b"\x0f\x85", "ae": b"\x0f\x83", "be": b"\x0f\x86", "a": b"\x0f\x87", "p": b"\x0f\x8a", "b": b"\x0f\x82"}[cc]; self.fix.append((len(self.c), label)); self.c += b"\0\0\0\0"
+        self.c += {"e": b"\x0f\x84", "ne": b"\x0f\x85", "ae": b"\x0f\x83", "be": b"\x0f\x86", "a": b"\x0f\x87", "p": b"\x0f\x8a", "b": b"\x0f\x82", "le": b"\x0f\x8e"}[cc]; self.fix.append((len(self.c), label)); self.c += b"\0\0\0\0"
     def call(self, label): self.c += b"\xe8"; self.fix.append((len(self.c), label)); self.c += b"\0\0\0\0"
     def jmp(self, label): self.c += b"\xe9"; self.fix.append((len(self.c), label)); self.c += b"\0\0\0\0"
     def bind(self, label): self.labels[label] = len(self.c)

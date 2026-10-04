@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""FPS camera bolted to the player's head (Bloodborne CUSA03173 v01.09), as three onionHEN cheat mods:
-  "FPS head camera (experimental)" (core), "FPS head camera: body faces the view" (FACE2 flag) and "FPS head camera: aim at the lock-on target" (AIM flag).
+"""FPS camera bolted to the player's head (Bloodborne CUSA03173 v01.09), as five onionHEN cheat mods:
+  "FPS head camera (experimental)" (core), "FPS head camera: body faces the view" (FACE2 flag), "FPS head camera: aim at the lock-on target" (AIM flag), "FPS head camera: death slow motion" (hook 0x1E196BB + SLOWON) and "FPS head camera: look at the killer after death" (KILLCAM flag).
 Only code patches + a data block at 0x54A0E00; no runtime tool is needed.
 
 CAVES
-  1. MANAGER cave (CAVE_MGR 0x54A1600, 2556 bytes, written as three entries).  Hook 0x1836c54 (5 bytes) in the camera manager update 0x18368b0: the store of the position row
+  1. MANAGER cave (CAVE_MGR 0x54A1600, 3387 bytes, written as four entries).  Hook 0x1836c54 (5 bytes) in the camera manager update 0x18368b0: the store of the position row
      `vmovaps [rbx+0x40],xmm3` after the follow-camera update; rbx = the manager's output pose, xmm0/1/2 = right/up/forward rows, xmm3 = position.  The cave, in this order:
        - PAD: a double-click of the touchpad (two rising edges within 30 frames) toggles MODE.  The DualSense report ring of libScePad (12 x 0xe0 bytes, buttons dword first) is
          found through the game's import slots 0x57E5B30 (-> libScePad+0xa30) and 0x57E4E90 (-> +0x13c0; their distance and the page offset are the layout check - the library's code itself must never be read, it is execute-only); runs even while MODE is 0.
@@ -19,6 +19,9 @@ CAVES
          too far from the game's camera (cutscenes, garbage poses).
        - DEAD: when the player's HP ([[pl+0x3b0]+0x20]+0xf8) is <= 0 (flag DEADF) there is no HMIN floor and the view rows are rebuilt from the head bone matrix (HA; forward = column 2, up = column 0, right = -column 1),
          eased with DALPHA from the game's last view (FS/US) and orthonormalised; the final camera y is at least origin.y + DFLOOR (0.30 m).  AIM is skipped while dead and the FACE2 epilogue is suspended.
+       - KILLER (flag KILLCAM): on the first dead frame the character the view will look at is chosen (the locked-on target, else the nearest living character within 20 m from the WorldChrMan list at +0x1490); from LOCKAT frames after the death
+         the death-camera target view points from the head at its chest (w lane of the direction masked to 0), up = world up.
+       - TIME (flag SLOWON, own mod with the hook 0x1E196BB): TSCALE eases to PH1SCALE for PH1END frames after the death, then PH2SCALE until PH2END, else 1.0; the hook multiplies every character's speed factor by TSCALE.
        - AIM (flag AIM): while the game's lock-on camera has a target (pointer in [mgr+0x110], lock point xyz at [mgr+0x120]) the view is rotated towards it; stored as a camera-space
          offset (TR, TU) of the game's forward that persists after the lock is released and fades while the user turns the camera.
   2. CAST cave (CAVE_CAST 0x54A1100, hook 0x1c090e0, the six follow-camera collision casts are its only callers): with NOCOLL it returns "no hit" so the camera is not pulled against walls.
@@ -35,7 +38,7 @@ is deliberately NOT part of any entry so that toggling the cheat never resets it
 
 DATA BLOCK 0x54A0E00: +0x04 BONEOFF i32 (68*0x30), +0x08/0C/10 R/U/F (0, 0.17, 0.32 m), +0x14 ARROFF, +0x18 LIMIT (100.0), +0x1C MINN (0.5), +0x20/24/28 YMIN/YMAX/R2, +0x2C COOL,
 +0x30 HMIN (1.25), +0x34 SNAP2 (1.0), +0x38 ALPHA (0.5), +0x3C HOLD, +0x40 LASTH, +0x50 LASTO, +0x60 OFFS, +0x70 NOCOLL, +0x71 MODE, +0x72 AIM, +0x73 FACE2, +0x75 PADTOG, +0x76 PADPREV,
-+0x74 DEADF, +0x78 FRAME, +0x7C PADLAST, +0x80 FPSFOV, +0x84 TPFOV (radians per FOV degree, copied into the Wide-FOV constant 0x54A0500 every frame), +0x90 FALLV, +0xA0..0xBF aim constants, +0xC0..0xFF masks, +0x118 TR, +0x11C TU, +0x120 FPREV, +0x130 DECAY, MOTCOS, TINY, +0x140 DALPHA, +0x144 DEPS, +0x148 HA, +0x150 FS, +0x160 US, +0x170 DFLOOR, +0x174 DFLR, +0x178 TSCALE, +0x17C SLOWMIN, +0x180 SLOWHOLD, +0x184 SLOWG, +0x188 DCNT, +0x18C FASTMAX, +0x190 FASTEND.
++0x74 DEADF, +0x78 FRAME, +0x7C PADLAST, +0x80 FPSFOV, +0x84 TPFOV (radians per FOV degree, copied into the Wide-FOV constant 0x54A0500 every frame), +0x90 FALLV, +0xA0..0xBF aim constants, +0xC0..0xFF masks, +0x118 TR, +0x11C TU, +0x120 FPREV, +0x130 DECAY, MOTCOS, TINY, +0x140 DALPHA, +0x144 DEPS, +0x148 HA, +0x150 FS, +0x160 US, +0x170 DFLOOR, +0x174 DFLR, +0x178 TSCALE, +0x17C PH1SCALE, +0x180 PH1END, +0x184 SLOWG, +0x188 DCNT, +0x18C PH2SCALE, +0x190 PH2END.
 Usage: python3 make_head_camera_mod.py [--u 0.17] [--f 0.32] [--r 0.0] [--bone 68]   -> prints a JSON list with the three mods (not chunked; use build_cheats.py for release files)."""
 import json, math, struct, sys
 from make_fov_mod import CONST_ADDR as FOVC       # the Wide-FOV mod's float constant (radians per FOV degree)
@@ -53,8 +56,9 @@ FPSFOV, TPFOV = D + 0x80, D + 0x84     # FOV multipliers (as radians per degree)
 PADTOG, PADPREV, FRAME, PADLAST = D + 0x75, D + 0x76, D + 0x78, D + 0x7C   # touchpad double-click toggle: enable flag, last state, frame counter, frame of the last rising edge
 GOT_PAD, GOT_PAD2, PAD_FN_OFF, PAD_FN2_OFF, PAD_RING_OFF = 0x57E5B30, 0x57E4E90, 0xA30, 0x13C0, 0x28BDC   # game import slot -> libScePad function (offset 0xa30 in the module); pad report ring = module base + 0x28bdc, 12 entries x 0xe0, buttons dword first
 DEADF, DALPHA, DEPS, HA, FS, US = D + 0x74, D + 0x140, D + 0x144, D + 0x148, D + 0x150, D + 0x160
-SLOWON, TSCALE, SLOWMIN, SLOWHOLD, SLOWG, DCNT = D + 0x77, D + 0x178, D + 0x17C, D + 0x180, D + 0x184, D + 0x188   # death slow motion: flag, global character time scale (read by the CAVE_TS hook), scale while dying, frames to hold it, easing factor, frames since death
-FASTMAX, FASTEND = D + 0x18C, D + 0x190          # after the slow part the time scale rushes to FASTMAX until FASTEND frames after the death (the death sequence, and the YOU DIED text, run on game time)
+SLOWON, TSCALE, PH1SCALE, PH1END, SLOWG, DCNT = D + 0x77, D + 0x178, D + 0x17C, D + 0x180, D + 0x184, D + 0x188   # death time effect: flag, global character time scale (read by the CAVE_TS hook), phase 1 scale, phase 1 length in frames, easing factor, frames since death
+PH2SCALE, PH2END = D + 0x18C, D + 0x190          # phase 2 time scale and the frame (after the death) at which it ends: phase 1 (PH1SCALE, e.g. 10x) fast-forwards the death animation so that YOU DIED comes at once, phase 2 (PH2SCALE, e.g. 0.1) is slow motion until the load
+KILLER, DEADP, KILLCAM, KCNT, LOCKAT, KRANGE2, KHEIGHT, WORLDUP, DALPHA2, ALPHAUSE = D + 0x198, D + 0x1A0, D + 0x1A1, D + 0x1A4, D + 0x1A8, D + 0x1AC, D + 0x1B0, D + 0x1C0, D + 0x1D0, D + 0x1D4   # killer camera: chosen character (ChrIns*), 'already chosen' flag, flag, frames since the death, frame at which the view turns to it, squared search range, aim height offset, world up, easing factor of that turn, the easing factor in use
 DFLOOR, DFLR = D + 0x170, D + 0x174     # death camera: lowest camera height above the feet (const), and that floor in world y for this frame   # death camera: dead flag (HP <= 0), smoothing alpha, epsilon, head matrix address of this frame, smoothed forward / up
 TR, TU, FPREV = D + 0x118, D + 0x11C, D + 0x120     # camera-space aim offset; last frame's game forward row (16 B)
 DECAY, MOTCOS, TINY = D + 0x130, D + 0x134, D + 0x138
@@ -155,30 +159,63 @@ def build_mgr():
     A.bind("fovset"); A.rip(b"\x89\x05", FOVC); A.raw(b"\x58")                              # mov [FOVC],eax ; pop rax
     A.rip(b"\x80\x3d", MODE, b"\x00"); A.jcc("e", "modeoff")
     A.raw(b"\x50\x51\x52\x56"); A.raw(b"\x41\x50\x41\x51")                                  # push rax, rcx, rdx, rsi, r8, r9
-    A.rip(b"\x48\x8b\x05", G_WCM); chk(A, RAX, "pop")
-    A.raw(ld(RAX, RAX, 0x60)); chk(A, RAX, "pop")                                           # rax = player ChrIns
-    A.raw(ld(RCX, RAX, 0x48)); chk(A, RCX, "pop"); vt(A, RCX, VT_MOD, "pop")               # rcx = model container
+    A.rip(b"\x48\x8b\x05", G_WCM); chk(A, RAX, "pfail")
+    A.raw(ld(RAX, RAX, 0x60)); chk(A, RAX, "pfail")                                           # rax = player ChrIns
+    A.raw(ld(RCX, RAX, 0x48)); chk(A, RCX, "pfail"); vt(A, RCX, VT_MOD, "pfail")               # rcx = model container
     A.raw(b"\x49\x89\xc8")                                                                  # mov r8,rcx   r8 = model container; the pose holders hang off it
-    A.raw(b"\x48\x8b\x90\xb0\x03\x00\x00"); chk(A, RDX, "pop"); vt(A, RDX, VT_SLOT, "pop")   # rdx = [pl+0x3b0]
+    A.raw(b"\x48\x8b\x90\xb0\x03\x00\x00"); chk(A, RDX, "pfail"); vt(A, RDX, VT_SLOT, "pfail")   # rdx = [pl+0x3b0]
     A.raw(ld(RAX, RDX, 0x20)); chk(A, RAX, "nohp")                                          # rax = [[pl+0x3b0]+0x20]: the status object whose +0xf8 is the player's HP (the same path before and after a respawn)
     A.raw(b"\x83\xb8\xf8\x00\x00\x00\x00"); A.rip(b"\x0f\x9e\x05", DEADF); A.jmp("hpdone")   # cmp dword [rax+0xf8],0 ; setle [DEADF]     dead = HP <= 0
     A.bind("nohp"); A.rip(b"\xc6\x05", DEADF, b"\x00")                                      # mov byte [DEADF],0
     A.bind("hpdone")
-    # ---- death slow motion (flag SLOWON): TSCALE eases (SLOWG per frame) to SLOWMIN while the player is dead and fewer than SLOWHOLD frames have passed since the death, else to 1.0.  The factor is applied by the CAVE_TS hook
+    # ---- death slow motion (flag SLOWON): TSCALE eases (SLOWG per frame) to PH1SCALE while the player is dead and fewer than PH1END frames have passed since the death, else to 1.0.  The factor is applied by the CAVE_TS hook
     # to every character's time step.  DCNT counts manager frames (real time, unaffected by the slow motion). ----
     A.rip(b"\x80\x3d", SLOWON, b"\x00"); A.jcc("e", "tsone")                                 # cmp byte [SLOWON],0 ; je tsone
     A.rip(b"\x80\x3d", DEADF, b"\x00"); A.jcc("e", "tsalive")                                # cmp byte [DEADF],0 ; je tsalive
     A.rip(b"\x8b\x05", DCNT); A.raw(b"\xff\xc0"); A.rip(b"\x89\x05", DCNT)                    # mov eax,[DCNT] ; inc eax ; mov [DCNT],eax
-    A.rip(b"\x3b\x05", SLOWHOLD); A.jcc("b", "tsslow")                                       # cmp eax,[SLOWHOLD] ; jb tsslow       first SLOWHOLD frames: slow motion
-    A.rip(b"\x3b\x05", FASTEND); A.jcc("ae", "tsone")                                        # cmp eax,[FASTEND] ; jae tsone        then until FASTEND: fast forward, afterwards normal time
-    A.rip(b"\xc5\xfa\x10\x25", FASTMAX); A.jmp("tsmix")                                       # vmovss xmm4,[FASTMAX]
-    A.bind("tsslow"); A.rip(b"\xc5\xfa\x10\x25", SLOWMIN); A.jmp("tsmix")                      # vmovss xmm4,[SLOWMIN] ; target
+    A.rip(b"\x3b\x05", PH1END); A.jcc("b", "tsslow")                                       # cmp eax,[PH1END] ; jb tsslow       first PH1END frames: slow motion
+    A.rip(b"\x3b\x05", PH2END); A.jcc("ae", "tsone")                                        # cmp eax,[PH2END] ; jae tsone        then until PH2END: fast forward, afterwards normal time
+    A.rip(b"\xc5\xfa\x10\x25", PH2SCALE); A.jmp("tsmix")                                       # vmovss xmm4,[PH2SCALE]
+    A.bind("tsslow"); A.rip(b"\xc5\xfa\x10\x25", PH1SCALE); A.jmp("tsmix")                      # vmovss xmm4,[PH1SCALE] ; target
     A.bind("tsalive"); A.rip(b"\xc7\x05", DCNT, struct.pack("<I", 0))                        # alive: mov dword [DCNT],0
     A.bind("tsone"); A.rip(b"\xc5\xfa\x10\x25", ONE)                                         # vmovss xmm4,[ONE]  target 1.0
     A.bind("tsmix")
     A.rip(b"\xc5\xfa\x10\x2d", TSCALE); A.raw(vss(0x5C, 6, 4, 5)); A.rip(b"\xc5\xca\x59\x35", SLOWG); A.raw(vss(0x58, 5, 5, 6)); A.rip(b"\xc5\xfa\x11\x2d", TSCALE)   # TSCALE += SLOWG*(target-TSCALE)
     A.raw(b"\x48\x8b\x52\x68"); chk(A, RDX, "pop"); vt(A, RDX, VT_X, "pop")                  # rdx = X = [[pl+0x3b0]+0x68]   physics body
     A.raw(b"\xc5\xf8\x10\xba\xe0\x01\x00\x00")                                              # vmovups xmm7,[rdx+0x1e0]   character position (x,y,z,1) = feet; the model matrix [pl+0x58]+0x350 is zero after a respawn
+    # ---- KILLER (flag KILLCAM): on the first dead frame choose the character the death camera will look at: the locked-on target ([mgr+0x110]) or else the nearest living character within sqrt(KRANGE2).
+    # Characters: [WorldChrMan+0x1490] = array of 0x38-byte records (first qword = ChrIns), count at WorldChrMan+0x1488.  HP of a character: [[chr+0x3b0]+0x20]+0xf8, position: [[[chr+0x3b0]+0x68]+0x1e0]. ----
+    A.rip(b"\x80\x3d", KILLCAM, b"\x00"); A.jcc("e", "kdone")
+    A.rip(b"\x80\x3d", DEADF, b"\x00"); A.jcc("e", "kalive")
+    A.rip(b"\xff\x05", KCNT)                                                                 # inc dword [KCNT]       frames since the death (real time)
+    A.rip(b"\x80\x3d", DEADP, b"\x00"); A.jcc("ne", "kdone")                                 # already chosen for this death
+    A.rip(b"\xc6\x05", DEADP, b"\x01"); A.rip(b"\x48\xc7\x05", KILLER, struct.pack("<I", 0))   # mov byte [DEADP],1 ; mov qword [KILLER],0
+    A.raw(b"\x48\x8b\x83\x10\x01\x00\x00"); chk(A, RAX, "ksearch")                           # rax = [rbx+0x110]  the locked-on target
+    A.rip(b"\x48\x89\x05", KILLER); A.jmp("kdone")                                          # mov [KILLER],rax
+    A.bind("ksearch")
+    A.rip(b"\xc5\xfa\x10\x35", KRANGE2)                                                      # vmovss xmm6,[KRANGE2]   best squared distance so far
+    A.rip(b"\x48\x8b\x05", G_WCM); chk(A, RAX, "kdone")
+    A.raw(b"\x44\x8b\x88\x88\x14\x00\x00")                                                   # mov r9d,[rax+0x1488]    number of records
+    A.raw(b"\x41\x81\xf9\x00\x01\x00\x00"); A.jcc("be", "kcount")                            # cmp r9d,256 ; jbe kcount
+    A.raw(b"\x41\xb9\x00\x01\x00\x00")                                                      # mov r9d,256
+    A.bind("kcount"); A.raw(b"\x45\x85\xc9"); A.jcc("e", "kdone")                            # test r9d,r9d ; jz kdone
+    A.raw(b"\x48\x8b\x80\x90\x14\x00\x00"); chk(A, RAX, "kdone")                             # rax = [rax+0x1490]
+    A.bind("kloop")
+    A.raw(b"\x48\x8b\x08"); chk(A, RCX, "knext")                                             # rcx = [rax]   candidate ChrIns
+    A.raw(b"\x48\x8b\x91\xb0\x03\x00\x00"); chk(A, RDX, "knext"); vt(A, RDX, VT_SLOT, "knext")   # rdx = [rcx+0x3b0]
+    A.raw(ld(RDX, RDX, 0x20)); chk(A, RDX, "knext")                                             # rdx = [rdx+0x20]   status object
+    A.raw(b"\x83\xba\xf8\x00\x00\x00\x00"); A.jcc("le", "knext")                            # cmp dword [rdx+0xf8],0 ; jle knext    only living characters
+    A.raw(b"\x48\x8b\x91\xb0\x03\x00\x00")                                                  # rdx = [rcx+0x3b0]
+    A.raw(b"\x48\x8b\x52\x68"); chk(A, RDX, "knext"); vt(A, RDX, VT_X, "knext")              # rdx = [rdx+0x68]   physics body
+    A.raw(b"\xc5\xf8\x10\xa2\xe0\x01\x00\x00")                                              # vmovups xmm4,[rdx+0x1e0]
+    A.raw(vx(0x5C, 4, 4, 7)); A.raw(vdp(5, 4, 4, 0x71))                                         # vsubps xmm4,xmm4,xmm7 ; vdpps xmm5,xmm4,xmm4,0x71   squared distance to the player
+    A.raw(b"\xc5\xf8\x2e\xee"); A.jcc("p", "knext"); A.jcc("ae", "knext")                      # vucomiss xmm5,xmm6 ; NaN or not nearer: next
+    A.raw(vx(0x28, 6, 0, 5)); A.rip(b"\x48\x89\x0d", KILLER)                                   # vmovaps xmm6,xmm5 ; mov [KILLER],rcx
+    A.bind("knext")
+    A.raw(b"\x48\x83\xc0\x38"); A.raw(b"\x41\xff\xc9"); A.jcc("ne", "kloop")                 # add rax,0x38 ; dec r9d ; jnz kloop
+    A.jmp("kdone")
+    A.bind("kalive"); A.rip(b"\xc6\x05", DEADP, b"\x00"); A.rip(b"\xc7\x05", KCNT, struct.pack("<I", 0)); A.rip(b"\x48\xc7\x05", KILLER, struct.pack("<I", 0))   # alive: forget the killer
+    A.bind("kdone")
     # The animated bone arrays live in a holder object [mod+HOLD] (0x18, 0x20 or 0x5f8 - it changes with the model build, e.g. after a respawn) at slot offset ARROFF.
     A.rip(b"\x4c\x63\x0d", HOLD); A.call("H"); A.raw(b"\x85\xc0"); A.jcc("e", "ffail")     # fast path: movsxd r9,[HOLD] ; H: rcx = holder
     A.rip(b"\x48\x63\x15", ARROFF); A.call("P"); A.raw(b"\x85\xc0"); A.jcc("ne", "found")  # movsxd rdx,[ARROFF] ; P: head -> xmm4
@@ -233,8 +270,22 @@ def build_mgr():
     A.raw(b"\xc5\xf8\x10\x28"); A.raw(b"\xc5\xf8\x10\x70\x10"); A.raw(b"\xc5\xf8\x10\x78\x20")   # vmovups xmm5,[rax] ; xmm6,[rax+0x10] ; xmm7,[rax+0x20]   rows r0 r1 r2
     A.raw(vx(0x28, 2, 0, 5)); A.raw(vins(2, 2, 2, 0x80)); A.raw(vins(2, 2, 6, 0x90)); A.raw(vins(2, 2, 7, 0xA8))   # xmm2 = Fh = (m2, m6, m10, 0)
     A.raw(vx(0x28, 0, 0, 5)); A.raw(vins(0, 0, 6, 0x10)); A.raw(vins(0, 0, 7, 0x28))                              # xmm0 = Uh = (m0, m4, m8, 0)
+    A.rip(b"\x8b\x05", DALPHA); A.rip(b"\x89\x05", ALPHAUSE)                                  # ALPHAUSE = DALPHA
+    # ---- killer camera: from KCNT >= LOCKAT the target view is "from the head towards the killer" (forward = direction to its chest, up = world up) instead of the head's own axes; the same easing turns the view (DALPHA2, slower) ----
+    A.rip(b"\x80\x3d", KILLCAM, b"\x00"); A.jcc("e", "nokill")
+    A.rip(b"\x48\x8b\x05", KILLER); A.raw(b"\x48\x85\xc0"); A.jcc("e", "nokill"); chk(A, RAX, "nokill")   # rax = KILLER ; test rax,rax ; jz
+    A.rip(b"\x8b\x0d", KCNT); A.rip(b"\x3b\x0d", LOCKAT); A.jcc("b", "nokill")                # mov ecx,[KCNT] ; cmp ecx,[LOCKAT] ; jb nokill
+    A.raw(b"\x48\x8b\x90\xb0\x03\x00\x00"); chk(A, RDX, "nokill"); vt(A, RDX, VT_SLOT, "nokill")   # rdx = [rax+0x3b0]
+    A.raw(b"\x48\x8b\x52\x68"); chk(A, RDX, "nokill"); vt(A, RDX, VT_X, "nokill")               # rdx = physics body of the killer
+    A.raw(b"\xc5\xf8\x10\xaa\xe0\x01\x00\x00"); A.rip(b"\xc5\xd0\x58\x2d", KHEIGHT)          # vmovups xmm5,[rdx+0x1e0] ; vaddps xmm5,xmm5,[KHEIGHT]   its chest
+    A.raw(vx(0x5C, 5, 5, 4)); A.rip(b"\xc5\xd0\x54\x2d", MASKXYZ)                              # vsubps xmm5,xmm5,xmm4 (target - camera) ; vandps xmm5,xmm5,[xyz mask]   w = 0: a row with a non-zero w breaks the view matrix (flat grey screen)
+    A.raw(vdp(6, 5, 5, 0x7F)); A.rip(b"\xc5\xf8\x2e\x35", DEPS); A.jcc("be", "nokill")        # |d|^2 > eps
+    A.raw(vx(0x51, 6, 0, 6)); A.raw(vx(0x5E, 2, 5, 6))                                          # xmm2 = d / |d|
+    A.rip(b"\xc5\xf8\x28\x05", WORLDUP)                                                       # vmovaps xmm0,[WORLDUP]
+    A.rip(b"\x8b\x05", DALPHA2); A.rip(b"\x89\x05", ALPHAUSE)                                  # ALPHAUSE = DALPHA2
+    A.bind("nokill")
     A.rip(b"\xc5\xf8\x28\x0d", FS); A.raw(vx(0x5C, 5, 2, 1))                                  # xmm1 = Fs ; xmm5 = Fh - Fs
-    A.rip(b"\xc4\xe2\x79\x18\x35", DALPHA); A.raw(vx(0x59, 5, 5, 6)); A.raw(vx(0x58, 1, 1, 5))  # xmm6 = alpha ; xmm5 *= alpha ; xmm1 = Fs' = Fs + alpha*(Fh-Fs)
+    A.rip(b"\xc4\xe2\x79\x18\x35", ALPHAUSE); A.raw(vx(0x59, 5, 5, 6)); A.raw(vx(0x58, 1, 1, 5))  # xmm6 = alpha ; xmm5 *= alpha ; xmm1 = Fs' = Fs + alpha*(Fh-Fs)
     A.rip(b"\xc5\xf8\x29\x0d", FS)                                                          # vmovaps [FS],xmm1
     A.rip(b"\xc5\xf8\x28\x3d", US); A.raw(vx(0x5C, 5, 0, 7)); A.raw(vx(0x59, 5, 5, 6)); A.raw(vx(0x58, 7, 7, 5))   # xmm7 = Us' = Us + alpha*(Uh-Us)
     A.rip(b"\xc5\xf8\x29\x3d", US)                                                          # vmovaps [US],xmm7
@@ -314,6 +365,7 @@ def build_mgr():
     A.raw(b"\xc5\xf8\x28\x43\x10"); A.raw(b"\xc5\xf8\x28\x4b\x20"); A.raw(b"\xc5\xf8\x28\x53\x30")   # reload xmm0..xmm2 = the new rows
     A.bind("pop"); A.raw(b"\x41\x59\x41\x58"); A.raw(b"\x5e\x5a\x59\x58")                  # pop r9, r8, rsi, rdx, rcx, rax
     A.bind("orig"); A.raw(ORIG_MGR); A.jmp_abs(BACK_MGR)
+    A.bind("pfail"); A.rip(b"\xc7\x05", TSCALE, struct.pack("<f", 1.0)); A.jmp("pop")                       # no valid player (loading): normal time, then leave the cave
     A.bind("modeoff"); A.rip(b"\xc7\x05", TSCALE, struct.pack("<f", 1.0)); A.rip(b"\xc7\x05", DCNT, struct.pack("<I", 0)); A.jmp("orig")   # head camera off: normal time, then the original instruction
     # ---- H: rcx = [r8+r9] (holder object), validated.  eax = 1 / 0 ----
     A.bind("H")                                                                             # r9d = holder offset (| HOSTA: the host is A = [mod+0x10] instead of the model container r8)
@@ -354,7 +406,7 @@ def aimconst():
 
 def entry(addr, on, off=b""): return {"offset": "%08X" % addr, "on": on.hex(), "off": off.hex(), "absolute": True}
 
-def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.5, tp_fov=1.3, slow_min=0.10, slow_hold=75, slow_g=0.15, fast_max=3.0, fast_end=240):
+def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.5, tp_fov=1.3, ph1_scale=1.0, ph1_end=300, ph2_scale=0.05, ph2_end=720, slow_g=0.25, lock_at=0, kill_range=20.0, kill_height=1.3, kill_alpha=0.10):
     # Tunables are written in three pieces on purpose: ARROFF (D+0x14), COOL (D+0x2C) and HOLD (D+0x3C) are the cave's own cached state (working pose holder/slot, scan back-off).  They start at
     # zero (cave memory is zeroed), are maintained by the cave and must NOT be rewritten when the cheat is toggled in a running game - a reset would force a full memory scan in the live process.
     cfg_a = struct.pack("<ifff", bone * 0x30, r, u, f)                                       # D+0x04: BONEOFF, R, U, F
@@ -367,9 +419,12 @@ def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax
     face = {"name": "FPS head camera: body faces the view (needs head camera)", "type": "checkbox", "enabled": True, "memory": [entry(FACE2, b"\x01", b"\x00")]}
     aim = {"name": "FPS head camera: aim at the lock-on target (needs head camera)", "type": "checkbox", "enabled": True, "memory": [entry(AIM, b"\x01", b"\x00")]}
     slow = {"name": "FPS head camera: death slow motion (needs head camera)", "type": "checkbox", "enabled": True, "memory": [
-        entry(TSCALE, struct.pack("<ffIf", 1.0, slow_min, slow_hold, slow_g)), entry(FASTMAX, struct.pack("<fI", fast_max, fast_end)), entry(CAVE_TS, build_ts()), entry(HOOK_TS, hook(HOOK_TS, CAVE_TS, 9), ORIG_TS),
+        entry(TSCALE, struct.pack("<ffIf", 1.0, ph1_scale, ph1_end, slow_g)), entry(PH2SCALE, struct.pack("<fI", ph2_scale, ph2_end)), entry(CAVE_TS, build_ts()), entry(HOOK_TS, hook(HOOK_TS, CAVE_TS, 9), ORIG_TS),
         entry(SLOWON, b"\x01", b"\x00")]}                                                      # flag last
-    return [core, face, aim, slow]
+    killcam = {"name": "FPS head camera: look at the killer after death (needs head camera)", "type": "checkbox", "enabled": True, "memory": [
+        entry(LOCKAT, struct.pack("<If", lock_at, kill_range ** 2)), entry(KHEIGHT, struct.pack("<4f", 0.0, kill_height, 0.0, 0.0) + struct.pack("<4f", 0.0, 1.0, 0.0, 0.0)), entry(DALPHA2, struct.pack("<f", kill_alpha)),
+        entry(KILLCAM, b"\x01", b"\x00")]}
+    return [core, face, aim, slow, killcam]
 
 if __name__ == "__main__":
     a = sys.argv

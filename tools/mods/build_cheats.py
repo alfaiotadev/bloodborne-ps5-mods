@@ -31,7 +31,7 @@ default_on = {"60 FPS (Lance McDonald)", "No Motion Blur", "No Chromatic Aberrat
 if profile in ("quality", "fps"):
     default_on |= {m["name"] for m in mods if m["name"].startswith(("Wide FOV", "DLAA threshold"))}
 if profile == "fps":
-    default_on |= {"FPS head camera (experimental)", "FPS head camera: body faces the view (needs head camera)", "FPS head camera: aim at the lock-on target (needs head camera)", "FPS head camera: death slow motion (needs head camera)"}
+    default_on |= {"FPS head camera (experimental)", "FPS head camera: body faces the view (needs head camera)", "FPS head camera: aim at the lock-on target (needs head camera)", "FPS head camera: death slow motion (needs head camera)", "FPS head camera: look at the killer after death (needs head camera)"}
 for m in mods:
     m["type"] = "checkbox"; m["enabled"] = ("--enable-all" in args) or (m["name"] in default_on)
 # onionHEN refuses to switch a mod OFF when any of its entries has an empty 'off' ("invalid patch").  Caves and data blocks have no original bytes, so 'off' = 'on' (they stay in place, harmless once

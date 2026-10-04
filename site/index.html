@@ -134,7 +134,7 @@
       <li class="card" data-group="optional experimental">
         <div class="badges"><span class="badge off">Default off</span><span class="badge exp">Experimental</span></div>
         <h3>FPS head camera</h3>
-        <p>A first-person camera attached to the character's head bone. The game's own camera logic keeps running, camera collision pull-in is disabled, and it falls back to the normal camera if its safety checks fail. When the hunter dies the view follows the head to the ground (death camera), optionally in GTA-style slow motion. Double-click the touchpad to switch it on and off in game; the field of view follows the camera mode. Toggle it off and on to reset it.</p>
+        <p>A first-person camera attached to the character's head bone. The game's own camera logic keeps running, camera collision pull-in is disabled, and it falls back to the normal camera if its safety checks fail. When the hunter dies the view follows the head to the ground (death camera) or stays on the enemy that killed the hunter, optionally with a GTA-style slow motion. Double-click the touchpad to switch it on and off in game; the field of view follows the camera mode. Toggle it off and on to reset it.</p>
         <a class="more" href="compare.html#set=cam&amp;scene=cam-proto">See an early prototype</a>
       </li>
       <li class="card" data-group="optional experimental">
@@ -202,6 +202,15 @@
     <h2 id="gallery-title">Gallery</h2>
     <p class="section-intro">Screenshots from a PS5 Pro. The head camera is experimental and still has rough edges, see the known issues.</p>
     <ul class="gallery">
+      <li>
+        <figure>
+          <video controls muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/media/fps-death-effect-poster.webp" aria-label="Clip of the FPS head camera in a fight: the hunter is killed, the view stays on the enemy that killed him, the YOU DIED screen arrives and the enemy moves on in slow motion">
+            <source src="assets/media/fps-death-effect.webm" type="video/webm">
+            <img src="assets/media/fps-death-effect.webp" width="640" height="360" alt="Animated clip of the FPS head camera in a fight: the hunter is killed, the view stays on the enemy that killed him, the YOU DIED screen arrives and the enemy moves on in slow motion">
+          </video>
+          <figcaption><strong>FPS head camera: the death effect.</strong> A fight in the Yharnam street. When HP reaches 0 the view stays on the enemy that killed the hunter (the killer camera), the YOU DIED screen arrives with the normal death animation, and from that moment every character drops to 5 % speed so the enemy moves in slow motion over the body. 9 seconds, no sound.</figcaption>
+        </figure>
+      </li>
       <li>
         <figure>
           <video controls muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/media/fps-ladder-jump-poster.webp" aria-label="Clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge, jumping down and dying; the death camera follows the head to the ground, ending on the death screen">
