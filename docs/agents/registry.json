@@ -1,0 +1,2813 @@
+{
+ "schema": 1,
+ "generated_by": "caves, hooks and data_block are derived from tools/mods/make_*_mod.py constants; addresses and structures are curated from live probes and static analysis. Regenerate caves/hooks/data_block whenever a generator changes. Updated for the mode-dependent FOV, the two-chunk manager cave and the XOM-safe pad check.",
+ "game": {
+  "title": "Bloodborne: Game of the Year Edition",
+  "title_id": "CUSA03173",
+  "version": "01.09",
+  "process": "eboot.bin",
+  "image_base": "0x400000",
+  "dump_range": [
+   "0x400000",
+   "0x5AD4000"
+  ],
+  "cheat_file": "/data/OnionHEN/cheats/CUSA03173_01.09.json",
+  "cheat_offset_semantics": "absolute virtual address; every memory entry needs \"absolute\": true",
+  "tested_only_on": {
+   "console": "PS5 Pro (backward-compatibility mode)",
+   "firmware": "12.40",
+   "output": "4K output, game renders at native 1080p"
+  },
+  "disclaimer": "All testing was done on firmware 12.40 with a PS5 Pro. Behaviour and performance on a base PS5 and on other firmware are UNKNOWN; do not claim otherwise.",
+  "confidence_levels": {
+   "confirmed-live": "read or written on the running game through ps5debug and the behaviour was observed or the mod ran from a cold start",
+   "inferred": "deduced from behaviour, naming or neighbouring data but not directly verified",
+   "static-only": "seen only in static disassembly or debug strings of an unpatched dump; never exercised live"
+  }
+ },
+ "addresses": [
+  {
+   "name": "eboot_image_base",
+   "address": "0x400000",
+   "kind": "image",
+   "size": null,
+   "description": "Start of eboot.bin text in the running process. Dump index = address - 0x400000. Cheat 'offset' fields in this repo are ABSOLUTE virtual addresses and every memory entry carries \"absolute\": true (onionHEN would otherwise add 0x400000).",
+   "confidence": "confirmed-live",
+   "source": "exec-time cheat application verified on console; 0x243487E 1/30 constant found at the absolute address"
+  },
+  {
+   "name": "eboot_dump_range_end",
+   "address": "0x5AD4000",
+   "kind": "image",
+   "size": null,
+   "description": "End of the dump range used for verification (0x400000..0x5AD4000 = 91,045,888 bytes). Only code bytes in the dump are comparable; data bytes are live runtime state.",
+   "confidence": "confirmed-live",
+   "source": "ps5debug PROC_READ dump of the unpatched running game"
+  },
+  {
+   "name": "cave_region",
+   "address": "0x54A0000",
+   "kind": "region",
+   "size": 16384,
+   "description": "Spare memory used for code caves and data blocks: 0x54A0000..0x54A4000. It must read as zeros in an unpatched dump and must not overlap another mod (build_cheats.py checks overlaps).",
+   "confidence": "confirmed-live",
+   "source": "tools/mods/caves.py docstring; every release cave lives here"
+  },
+  {
+   "name": "diag_log_region",
+   "address": "0x5A40000",
+   "kind": "region",
+   "size": null,
+   "description": "Lab-only diagnostic ring buffer of the CreateTexture2D hook (header at 0x5A40000, 256 x 32-byte entries at 0x5A40010). Not used by any release mod.",
+   "confidence": "confirmed-live",
+   "source": "lab hook; read live"
+  },
+  {
+   "name": "G_WorldChrMan",
+   "address": "0x593E878",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Pointer to the world character manager. Player ChrIns = [[G_WorldChrMan]+0x60]. Read by every head-camera cave on every frame.",
+   "confidence": "confirmed-live",
+   "source": "read live; cold-start tested through the head-camera caves"
+  },
+  {
+   "name": "G_CameraRoot",
+   "address": "0x593E860",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Pointer to the world-level object that owns the camera manager: manager = [[0x593E860]+0x2830].",
+   "confidence": "confirmed-live",
+   "source": "read live (scripts read_cam.py and others)"
+  },
+  {
+   "name": "G_SprjGraphics",
+   "address": "0x59406C8",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Pointer to the SprjGraphics object (0x6A0 bytes). +0x90 render-target table, +0xF0/+0xF4 W/H copies, +0x250 -> sampler container (table at +0x360).",
+   "confidence": "confirmed-live",
+   "source": "read live (gfx_inspect.py), sampler table written live"
+  },
+  {
+   "name": "G_SceneParams",
+   "address": "0x59406E0",
+   "kind": "global_struct",
+   "size": null,
+   "description": "Static (not a pointer) scene post-effect parameter block: DOF fields +0x1AC..+0x2FC, YEBIS-AA enable +0x220. The game overwrites it every frame, so live writes do not persist; patch the consumer code instead.",
+   "confidence": "confirmed-live",
+   "source": "read live in Hunter's Dream and Yharnam; live write reverted within a frame"
+  },
+  {
+   "name": "G_YebisContext",
+   "address": "0x5865ED0",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Pointer to the YEBIS CPostEffect context (init flags +0x130.., TAA +0xB8C.., AA enable +0xBBC, falloff +0xBC0/+0xBC4). NOTE: one lab note wrote 0x58C5ED0; the probe file and yebis_probe.py use 0x5865ED0 and that is the address that was read live.",
+   "confidence": "confirmed-live",
+   "source": "read live (yebis_probe.py, debug_probes.txt)"
+  },
+  {
+   "name": "G_SoloParamRepository",
+   "address": "0x5940340",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "SoloParamRepository. repo+0x9C0 -> LOCK_CAM_PARAM_ST table (see structures ParamBlob / LockCamParamRow).",
+   "confidence": "confirmed-live",
+   "source": "read live (list_params.py, dump_cam_params.py), rows edited live"
+  },
+  {
+   "name": "G_LodBankMan",
+   "address": "0x59402D8",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "FD4 singleton LodBankMan. Param blob 'LOD_BANK' = [[[obj+0x68]+0x70]+0x70] (64 rows).",
+   "confidence": "confirmed-live",
+   "source": "read live; rows edited live (LOD x4 experiment)"
+  },
+  {
+   "name": "G_DrawEntityManager",
+   "address": "0x593B168",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Draw-entity manager used by SetDrawEnable (0x17CA580 -> 0x19A6CA0). Block array [M+0x28], block stride 0x1F8, count at block+0xC8, base at block+0xD0, entity size 0x2E0, entity flags +0x1FC bit 14 = drawn.",
+   "confidence": "inferred",
+   "source": "read live by find_entities.py/scan_entities.py; semantics deduced"
+  },
+  {
+   "name": "G_PlayerWarpContext",
+   "address": "0x593B148",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "First argument ctx of the game's warp function 0x194B110.",
+   "confidence": "confirmed-live",
+   "source": "used successfully through the call service (warp tested over 100 m, 0.000 m error)"
+  },
+  {
+   "name": "G_MapState",
+   "address": "0x593B120",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "[[0x593B120]+0xA7C] = current map id compared by the warp tool (warp only works inside the current map).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "G_KeyValueStore",
+   "address": "0x593D710",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Key/value store holding the PlayerWarp debug keys (SprjEzSelectBot.PlayerWarp.igPosX/Y/Z, degX/degY, cDegX/cDegY); get 0x24EC0F0, set 0x24EC3B0.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "G_PlayerHide",
+   "address": "0x593E88E",
+   "kind": "global_byte",
+   "size": 1,
+   "description": "'Player Hide' debug flag. Writing it had no effect on rendering.",
+   "confidence": "confirmed-live",
+   "source": "written live, no visible effect"
+  },
+  {
+   "name": "G_RenderResW",
+   "address": "0x55289F8",
+   "kind": "global_u32",
+   "size": 4,
+   "description": "Render resolution width global (1920 default). Written by Lance's 720p variant and by the lab resolution experiments.",
+   "confidence": "confirmed-live",
+   "source": "written via cheat JSON; resolution tests 2026-10-02"
+  },
+  {
+   "name": "G_RenderResH",
+   "address": "0x55289FC",
+   "kind": "global_u32",
+   "size": 4,
+   "description": "Render resolution height global (1080 default).",
+   "confidence": "confirmed-live",
+   "source": "same"
+  },
+  {
+   "name": "G_UiScaleX",
+   "address": "0x59404D0",
+   "kind": "global_f32",
+   "size": 4,
+   "description": "Derived UI scale = W/1920.0 (written at init by 0x2417770).",
+   "confidence": "inferred",
+   "source": "static disassembly of an unpatched live dump of eboot.bin; read via debug probe"
+  },
+  {
+   "name": "G_UiScaleY",
+   "address": "0x59404D4",
+   "kind": "global_f32",
+   "size": 4,
+   "description": "Derived UI scale = H/1080.0.",
+   "confidence": "inferred",
+   "source": "static disassembly of an unpatched live dump of eboot.bin; read via debug probe"
+  },
+  {
+   "name": "G_UiSizeCopy",
+   "address": "0x59404D8",
+   "kind": "global_u32",
+   "size": 8,
+   "description": "Integer copies of the UI width/height (0x59404D8, 0x59404DC).",
+   "confidence": "confirmed-live",
+   "source": "read live by the 'UI' debug probe"
+  },
+  {
+   "name": "G_PiOver180",
+   "address": "0x4D25E58",
+   "kind": "rodata_f32",
+   "size": 4,
+   "description": "pi/180 float constant used by the follow-camera FOV conversion at 0x183AF56. The Wide-FOV mod redirects that instruction's operand to its own constant; this value itself is never modified.",
+   "confidence": "confirmed-live",
+   "source": "generator asserts the original displacement bytes against the dump"
+  },
+  {
+   "name": "G_TimestepConstA",
+   "address": "0x59406E4",
+   "kind": "global_f32",
+   "size": 4,
+   "description": "Static global holding a 1/60 constant (not a live dt; writing it does nothing useful).",
+   "confidence": "confirmed-live",
+   "source": "read live"
+  },
+  {
+   "name": "G_TimestepConstB",
+   "address": "0x5940A54",
+   "kind": "global_f32",
+   "size": 4,
+   "description": "Second static 1/60 constant.",
+   "confidence": "confirmed-live",
+   "source": "read live"
+  },
+  {
+   "name": "G_AnisoDebugFlag",
+   "address": "0x5AA6C25",
+   "kind": "global_byte",
+   "size": 1,
+   "description": "'Aniso Debug' override flag of the debug menu. Default and reader not found (xref search returned neighbouring globals 0x5AA6C24/28).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "G_MaxAnisotropyGlobal",
+   "address": "0x553AC88",
+   "kind": "global_i32",
+   "size": 4,
+   "description": "Debug-menu global 'MaxAnisotropy'. Real default and reader not determined.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "G_CameraCollisionBit",
+   "address": "0x5527A94",
+   "kind": "global_byte",
+   "size": 1,
+   "description": "Camera-collision bit set every frame from a parameter (not a usable switch).",
+   "confidence": "inferred",
+   "source": "found while researching camera collision; not tested as a switch"
+  },
+  {
+   "name": "C_Timestep_dt",
+   "address": "0x243487E",
+   "kind": "code_site",
+   "size": 9,
+   "description": "`mov dword [r12+0x18], imm32` writing the fixed time step: original 0x3D088889 (1/30 s). The 60 FPS mod rewrites it to 0x3C888889 (1/60 s). It is an initialisation setting, not a per-frame dt.",
+   "confidence": "confirmed-live",
+   "source": "60 FPS cheat verified from cold start; live read of the dt object (+0x18)"
+  },
+  {
+   "name": "C_60fps_group",
+   "address": "0xFBC40F",
+   "kind": "code_site_group",
+   "size": null,
+   "description": "First of the 128 write entries of the '60 FPS (Lance McDonald)' mod (spans 0xFBC40F..0x2FBF178: frame-limiter jumps, time-step constants, resolution-constant fix-ups, assert stub 0x2FBF178 `xor rax,rax; ret`, vsync stub 0x2483EC1 `ret`). The byte list is in tools/mods/data/base_mods.json.",
+   "confidence": "confirmed-live",
+   "source": "derived from Lance McDonald's patch (see CREDITS.md); runs on the console"
+  },
+  {
+   "name": "C_NoMotionBlur",
+   "address": "0x26A057B",
+   "kind": "code_site",
+   "size": 2,
+   "description": "`je +0x16` -> `jmp +0x16` (74 16 -> EB 16): skips the motion-blur pass.",
+   "confidence": "confirmed-live",
+   "source": "cheat entry in base_mods.json, runs on console"
+  },
+  {
+   "name": "C_NoChromaticAberration",
+   "address": "0x269FAA8",
+   "kind": "code_site",
+   "size": 12,
+   "description": "`mov eax,[rbp-0xA70]; mov [rbx+0xAC],eax` -> `mov dword [rbx+0xAC],0; nop; nop`: forces the CA strength to 0. Measured as the largest real image-quality gain.",
+   "confidence": "confirmed-live",
+   "source": "cheat entry in base_mods.json, runs on console"
+  },
+  {
+   "name": "C_SkipIntroLogos",
+   "address": "0x4D99138",
+   "kind": "data",
+   "size": 4,
+   "description": "First of three UTF-16 string heads (0x4D99138, 0x4D99154, 0x4D9916E) zeroed so the start-up logo movies are skipped (original bytes 4C 00 6F 00 = 'Lo').",
+   "confidence": "confirmed-live",
+   "source": "cheat entry in base_mods.json, runs on console"
+  },
+  {
+   "name": "C_DlcSaveUnlock",
+   "address": "0x23B67B3",
+   "kind": "code_site",
+   "size": 8,
+   "description": "`mov qword [r14+8], 0` -> `mov qword [r14+8], 0x01010101`: sets DLC ownership flags. Not exercised in the lab notes; entry comes from the community cheat file.",
+   "confidence": "inferred",
+   "source": "base_mods.json; no maintainer test recorded"
+  },
+  {
+   "name": "C_AA_cmp_enable",
+   "address": "0x25D802C",
+   "kind": "code_site",
+   "size": null,
+   "description": "`cmp [r15+0x220],0` (scene AA enable) followed by `setne al` at 0x25D8034 and `call 0xFB37F0` at 0x25D803D: runs every frame in the scene post-effect apply function (0x25D7A00..0x25D8140).",
+   "confidence": "confirmed-live",
+   "source": "force-AA patch and the aniso call-site hook both ran live"
+  },
+  {
+   "name": "C_AA_setne",
+   "address": "0x25D8034",
+   "kind": "code_site",
+   "size": 3,
+   "description": "`setne al` (0F 95 C0). Rewriting to `mov al,1; nop` (B0 01 90) forces YEBIS FXAA2 on. This stacks FXAA2 on top of the game's own DLAA pass (-30 % sharpness) and is NOT shipped.",
+   "confidence": "confirmed-live",
+   "source": "A/B tested on pose-locked scenes"
+  },
+  {
+   "name": "C_AA_callsite",
+   "address": "0x25D803D",
+   "kind": "code_site",
+   "size": 5,
+   "description": "`call 0xFB37F0` (SetAntialiasEnable wrapper), executed every frame. The Anisotropic mod redirects this call to its stub at 0x54A0400, which tail-jumps back to 0xFB37F0.",
+   "confidence": "confirmed-live",
+   "source": "make_aniso_mod.py; original bytes E8 AE B7 9D FE"
+  },
+  {
+   "name": "F_SetAntialiasEnable",
+   "address": "0xFB37F0",
+   "kind": "function",
+   "size": null,
+   "description": "YEBIS SetAntialiasEnable wrapper -> 0xFD31F0 stores [ctx+0xBBC]; GetAntialiasEnable 0xFB3810.",
+   "confidence": "confirmed-live",
+   "source": "read/called live"
+  },
+  {
+   "name": "F_SetAntialiasFalloffDistance",
+   "address": "0xFD3270",
+   "kind": "function",
+   "size": null,
+   "description": "SetAntialiasFalloffDistance(near, far): ctx+0xBC0 = near, ctx+0xBC4 = far (metres), dirty flag ctx+0x6D5. Used in the YEBIS FXAA2 distance-falloff experiment.",
+   "confidence": "confirmed-live",
+   "source": "driven live in specs spec_aa_falloff_scenes"
+  },
+  {
+   "name": "F_SetTemporalAntialiasEnable",
+   "address": "0xFD2CB0",
+   "kind": "function",
+   "size": null,
+   "description": "YEBIS SetTemporalAntialiasEnable (the game never calls it); parameters set by 0xFD2D20 SetTemporalAntialiasParameters; pass 0xFE7580 ApplyEffects_TemporalAntialias checks ctx+0xC99.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin + live ctx reads"
+  },
+  {
+   "name": "C_TAA_init1",
+   "address": "0x25D32AB",
+   "kind": "code_site",
+   "size": 1,
+   "description": "Init-flag byte; writing 12 (together with 0x25D32B5 -> 16) makes YEBIS initialise temporal AA. TAA enable then works (ctx+0xC99=1) but has no visible effect without camera jitter.",
+   "confidence": "confirmed-live",
+   "source": "tested live; no visible effect"
+  },
+  {
+   "name": "C_TAA_init2",
+   "address": "0x25D32B5",
+   "kind": "code_site",
+   "size": 1,
+   "description": "Second init-flag byte for TAA (-> 16).",
+   "confidence": "confirmed-live",
+   "source": "tested live"
+  },
+  {
+   "name": "C_DOF_setne",
+   "address": "0x25D7A8B",
+   "kind": "code_site",
+   "size": 3,
+   "description": "`setne al` feeding SetDepthOfFieldEnable (call 0xFB2960 at 0x25D7A8E): `0F 95 C0` -> `31 C0 90` (xor eax,eax; nop) = DOF off. Preceded by `cmp [rbx+0x1AC],0` at 0x25D7A84. CustomDof consumer: `cmp [0x59406E0+0x2D0],0` at 0x25D7CA7 then call 0xFB3600.",
+   "confidence": "confirmed-live",
+   "source": "No depth of field mod; atomic single write"
+  },
+  {
+   "name": "V_GameAAPass",
+   "address": "0x56E7980",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of the game's own anti-aliasing render pass (ctor 0x1258940, execute 0x1258D30, parameter copy 0x12596F0, debug registration 0x1259730, pass assembler 0x1258C50, shader-name table 0x56E79A0). 4 heap instances; the active one is part of the scene object at scene+0x1BC8. Found to be DLAA (mode 3).",
+   "confidence": "confirmed-live",
+   "source": "4 instances read live in 4 scenes; modes written live"
+  },
+  {
+   "name": "C_DlaaThresholdLoad",
+   "address": "0x125970F",
+   "kind": "code_site",
+   "size": 5,
+   "description": "`vmovss xmm0,[rsi+0x18]` (C5 FA 10 46 18) inside 0x12596F0: copies the scene's DLAA threshold into pass+0x28 every frame. The DLAA mod replaces it with a jump to a cave that loads a constant (default 0.3). Back address 0x1259714.",
+   "confidence": "confirmed-live",
+   "source": "make_dlaa_mod.py; runs on the console"
+  },
+  {
+   "name": "F_SceneParamInterp",
+   "address": "0x126C5D0",
+   "kind": "function",
+   "size": null,
+   "description": "Interpolates the scene AA parameters from two scene_draw_param rows (feeds 0x12596F0).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "D_SceneAAParamSource",
+   "address": "0x25E02B0",
+   "kind": "function",
+   "size": null,
+   "description": "Debug-menu registration of the YEBIS AA parameter block (Enable +0x68, AntiAliasType +0x6C, FxaaAlpha +0x70, FxaaReduceMin +0x74, FxaaReduceMul +0x78, FxaaSpanMax +0x7C, DLAA params after). Scene-struct equivalents are r15+0x1B8 + that offset.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "C_SamplerDebug",
+   "address": "0x25B29F0",
+   "kind": "function",
+   "size": null,
+   "description": "Debug-menu 'Sampler' registration: MaxAnisotropy and mipLODBias per sampler ([r15+4], [r15]), table base this+0x360. The table loop (stride 0x38, limit 0x98) exists only in the debug menu code.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "C_AnisoStub",
+   "address": "0x54A0400",
+   "kind": "cave",
+   "size": 134,
+   "description": "Anisotropy stub (cave, see caves).",
+   "confidence": "confirmed-live",
+   "source": "make_aniso_mod.py"
+  },
+  {
+   "name": "F_CameraManagerCtor",
+   "address": "0x1835FC0",
+   "kind": "function",
+   "size": null,
+   "description": "Camera manager constructor (called from 0x1D379D9; object size 0x1150).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "F_CameraManagerUpdate",
+   "address": "0x18368B0",
+   "kind": "function",
+   "size": null,
+   "description": "Camera manager update. Calls the follow-camera update (0x183AC60) and then copies the follow camera's pose rows into the manager's own pose (rows +0x10/0x20/0x30/0x40). Pad deltas WorldChrMan+0x70/+0x80 are fed into cam+0x110/+0x120 here.",
+   "confidence": "confirmed-live",
+   "source": "hooked at 0x1836C54 in the release build"
+  },
+  {
+   "name": "C_ManagerPositionStore",
+   "address": "0x1836C54",
+   "kind": "code_site",
+   "size": 5,
+   "description": "`vmovaps [rbx+0x40],xmm3` stores the manager's position row; at this point xmm0/xmm1/xmm2 = right/up/forward rows, xmm3 = position, rbx = camera manager. HOOK for the head camera (manager mode). Back address 0x1836C59.",
+   "confidence": "confirmed-live",
+   "source": "release hook, cold-start tested"
+  },
+  {
+   "name": "F_FollowCameraUpdate",
+   "address": "0x183AC60",
+   "kind": "function",
+   "size": null,
+   "description": "Follow-camera update (this = rdi at entry, r13 inside). Integrates pad rotation, derives the orientation as a look-at from camera position to pivot, lerps CamDist toward param row f0 (0x183AE68) and FovY toward row f5 (0x183AF56). Entry bytes 55 48 89 E5 41 57 (6 B); only epilogue at 0x183F77B.",
+   "confidence": "confirmed-live",
+   "source": "hooked in lab (entry) and release (epilogue)"
+  },
+  {
+   "name": "C_FollowCamEpilogue",
+   "address": "0x183F77B",
+   "kind": "code_site",
+   "size": 7,
+   "description": "`add rsp,0x3D8` = the follow-camera update's only epilogue (r13 = follow camera). Release hook for FACE2; dev hook for pose-lock/call service. Back address 0x183F782.",
+   "confidence": "confirmed-live",
+   "source": "release + dev hook"
+  },
+  {
+   "name": "C_FovConvert",
+   "address": "0x183AF56",
+   "kind": "code_site",
+   "size": 8,
+   "description": "`vmulss xmm1,xmm1,[rip+disp32]` multiplying the row FOV (degrees) by pi/180 at 0x183AF56; disp32 at 0x183AF5A (original FA AE 4E 03 -> 0x4D25E58). Wide-FOV mod points the disp32 at a cave constant.",
+   "confidence": "confirmed-live",
+   "source": "make_fov_mod.py; FOV measured by image registration"
+  },
+  {
+   "name": "C_FovClamp",
+   "address": "0x183AF2B",
+   "kind": "code_site",
+   "size": null,
+   "description": "FOV clamp code 0x183AF2B..0x183AF4E: values <38 deg become 38 deg (0.6632 rad), >48 deg become 48 deg. Explains why editing the param table above 48 degrees has no effect.",
+   "confidence": "confirmed-live",
+   "source": "FOV 60 test was clamped to 48"
+  },
+  {
+   "name": "C_CamDistLerp",
+   "address": "0x183AE68",
+   "kind": "code_site",
+   "size": 4,
+   "description": "`vmovss xmm1,[rsi]` loading CamDist target from the LOCK_CAM_PARAM_ST row (f0). Hook point of the lab 'hood view' mod (back 0x183AE75).",
+   "confidence": "confirmed-live",
+   "source": "lab mod tested"
+  },
+  {
+   "name": "C_CamPivotHeight",
+   "address": "0x183AEEF",
+   "kind": "code_site",
+   "size": 5,
+   "description": "`vmovss xmm3,[rsi+0xC]` pivot height load. Lab 'hood view' hook (back 0x183AEF4).",
+   "confidence": "confirmed-live",
+   "source": "lab mod tested"
+  },
+  {
+   "name": "C_CamPoseWriters",
+   "address": "0x183B399",
+   "kind": "code_site",
+   "size": null,
+   "description": "Paths that write the follow camera's pose rows: 0x183B399, 0x183B649, 0x183EBB2 (look-at), 0x183EC5E, 0x183EFC0. Writes from outside or in the middle of the update are overwritten within a frame.",
+   "confidence": "confirmed-live",
+   "source": "legacy hooks at 0x183B399/0x183B649 were tried and removed"
+  },
+  {
+   "name": "C_CameraCast",
+   "address": "0x1C090E0",
+   "kind": "code_site",
+   "size": 6,
+   "description": "Entry of the camera collision cast function (`push rbp; mov rbp,rsp; push r15`), filter 0x25. The follow camera's six collision casts are its only callers. Hook returns 0 (no hit) when NOCOLL is set. Back address 0x1C090E6.",
+   "confidence": "confirmed-live",
+   "source": "release hook, cold-start tested"
+  },
+  {
+   "name": "F_FollowCamDebug",
+   "address": "0x183FB60",
+   "kind": "function",
+   "size": null,
+   "description": "Follow-camera debug-menu registration (ChrOrgOffset, FulcrumDist.., CamDist, CamDistTarget, CamCastSphereRadius, CamSafeMargin..).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "F_AimCamDebug",
+   "address": "0x18349B0",
+   "kind": "function",
+   "size": null,
+   "description": "ChrAimCam debug registration (FovY, ZoomInFovY/OutFovY, ZoomRate, ZoomIn/OutOrg, ChrTargetDist, RotRage). manager+0x68. BallistaAimCam registration 0x18316A0 (manager+0x78).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "F_PlayerWarp",
+   "address": "0x194B110",
+   "kind": "function",
+   "size": null,
+   "description": "Game warp: 0x194B110(ctx=[0x593B148], &mapId, &pos(x,y,z,1), &rot(pitchRad,yawRad,0,0)). Moves physics, sets yaw, resets the camera behind the character; only inside the current map. Caller 0x1948740, save function 0x194EA30.",
+   "confidence": "confirmed-live",
+   "source": "called through the call service"
+  },
+  {
+   "name": "F_SetPosition",
+   "address": "0x1CC16A0",
+   "kind": "function",
+   "size": null,
+   "description": "Game SetPosition(chr,&pos): X+0x1E0 = X+0x1F0 = pos; word X+0x210 = 0x0101; byte X+0x32A = 1 (physics consumes and clears the flags). Angle wrap 0x1CC1770.",
+   "confidence": "confirmed-live",
+   "source": "reproduced by player_warp.py (1 m moves)"
+  },
+  {
+   "name": "F_ApplyFacing",
+   "address": "0x1CBCF30",
+   "kind": "function",
+   "size": null,
+   "description": "0x1CBCF30(pl,1) applies the player's yaw (X+0x1D4) to the facing. Forcing it every frame gave 'tank controls'.",
+   "confidence": "confirmed-live",
+   "source": "tried via call service; rejected"
+  },
+  {
+   "name": "F_SetDrawEnable",
+   "address": "0x17CA580",
+   "kind": "function",
+   "size": null,
+   "description": "SetDrawEnable -> 0x19A6CA0; id->entity binary search in the draw-entity manager.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "C_AIThreadCrash",
+   "address": "0x191E97B",
+   "kind": "code_site",
+   "size": null,
+   "description": "`call [rax+0x18]` in the game's CSChrThread4 (return 0x191E97E): jump into a freed heap object; observed right after toggling an enemy-movement cheat at runtime. NOT caused by any mod here.",
+   "confidence": "confirmed-live",
+   "source": "caught with the debugger (crash_catch.py)"
+  },
+  {
+   "name": "C_VideoOutBuffers",
+   "address": "0x15E48E9",
+   "kind": "code_site",
+   "size": null,
+   "description": "sceVideoOut SetBufferAttribute (pixel format 0x80000000, 1920x1080, pitch 1920) + RegisterBuffers(2): output buffers are hard-coded 1080p. Swapchain creation 0x15E4620.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "C_RenderInit",
+   "address": "0x2417770",
+   "kind": "function",
+   "size": null,
+   "description": "Reads SPRJ.WIN64.frameBufferW/H properties, writes W/H globals back; setters 0x2417700, 0x219E850, 0x241A2F0.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "C_SwapchainSize",
+   "address": "0x2594AA6",
+   "kind": "code_site",
+   "size": null,
+   "description": "`mov ecx,[table]` -> `mov ecx,imm32; nop3` (swapchain size 1920x1080 patch); second site 0x2594ABD; view-RT size sites 0x2594EB7/0x2594EC2; Scaleform HUD viewport 0x2358554 (18 B).",
+   "confidence": "confirmed-live",
+   "source": "SSAA experiment 2026-10-02 (later shown to give no real supersampling)"
+  },
+  {
+   "name": "C_TextureCreateCrash",
+   "address": "0x259F874",
+   "kind": "code_site",
+   "size": null,
+   "description": "Fault site of every >1080p start-up crash (main-buffer RT texture NULL; Texture::Create 0x259F130 -> CreateTexture2D 0x2565F90 -> 0x2571D60 fails with error 8/9). Backtrace 0x2697B7A <- 0x219706A <- 0x219A57A (SprjGraphics init).",
+   "confidence": "confirmed-live",
+   "source": "debugger-confirmed in 18 configurations"
+  },
+  {
+   "name": "C_Lance1080Pins",
+   "address": "0x1A44C55",
+   "kind": "code_site",
+   "size": 23,
+   "description": "Two 23-byte blocks (0x1A44C55, 0x1A452C7) pinning sun/light screen positions to 1080p space; part of Lance's 720p/1080p patch and present in both.",
+   "confidence": "confirmed-live",
+   "source": "patch tables of Lance's patcher vs live"
+  },
+  {
+   "name": "C_Hardcoded1080",
+   "address": "0x21166D6",
+   "kind": "code_site",
+   "size": null,
+   "description": "movabs 0x438_00000780 = (1080<<32)|1920, one of the hard-coded 1920x1080 pairs left after the resolution globals are changed. Rodata divisors at 0x4D29338...",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "V_FFXSceneCtrl",
+   "address": "0x57B9080",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of the FFX effect-system scene controller (1 instance). Byte [obj+0x5C6] = debug flag 'SFX-OFF' (1 removes ground fog and sparkle particles; steadied A/B comparisons), +0x5C0 'Update-MultThreadEnable'. Function 0x2703570 registers the debug menu.",
+   "confidence": "confirmed-live",
+   "source": "flag written live; Hunter's Dream + Yharnam"
+  },
+  {
+   "name": "C_SfxOffInit",
+   "address": "0x26FD9F2",
+   "kind": "code_site",
+   "size": 1,
+   "description": "Static toggle candidate: byte 00 -> 01 at the initialiser (0x26FD9EB) of the SFX-OFF flag. Never deployed or tested.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "S_FogManager",
+   "address": "0x4D9FE34",
+   "kind": "string",
+   "size": null,
+   "description": "'FOG MANAGER' (FogA/FogB ... GXParamId, FogInterpRatio 0x4DCC3C0, 'Fog Param' debug menu 0x4DD185E, DepthFogDensity 0x4CACF08). Source of the white fog wall that survives SFX-OFF; not yet traced to its consumer.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "S_FxBillboardParam",
+   "address": "0x4C95D5C",
+   "kind": "string",
+   "size": null,
+   "description": "FXBillboardParam (possible particle source of mist); LightShaftMask 0x3046387; hclSimpleWindAction 0x4BAF1D5 (cloth only).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "S_DofParams",
+   "address": "0x306A657",
+   "kind": "string",
+   "size": null,
+   "description": "YEBIS DOF parameter names: fParam_FocusDistance 0x306A657, ...DepthOfFieldFactorScaleOffset 0x306A5C0, ...FactorThreshold 0x306A5E9, CDepthOfField 0x4AD78A0, DofGlareQuality 0x4D830DA, debug DepthOfFieldQuality 0x4DC7C2E.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "S_LodLeads",
+   "address": "0x4D350BC",
+   "kind": "string",
+   "size": null,
+   "description": "LOD leads: CSLod 0x4D350BC (assert/tag only), LodBankMan/LOD_BANK strings 0x2142B20 and 0x231129D, 'Disable Entity Culling' 0x26B8841, 'Enable Primitive Culling' 0x26B8DDE, 'Prim Culling Model Count' 0x26B8E19, 'Lod%d' 0x2646DD2, NearFade/FarFade 0x260BCC9 and 0x260BD7F, 'LodLevel' stats 0x25C7010, '<LodLvBias/<LodLvDisp' 0x4DAD522 (no code reference found), Havok animation LOD (numBonesPerLod, numTracksInLod, currentLod).",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "S_CameraStrings",
+   "address": "0x4D52ACA",
+   "kind": "string",
+   "size": null,
+   "description": "ChrCam debug group 0x4D52ACA; <CamDist 0x4D52CC6, <CamDistTarget 0x4D52CE6; ZoomInFovY/ZoomOutFovY 0x4D52408/0x4D5242C; ZoomIn/OutOrg 0x4D524C6..0x4D525D6; PrevCamZoom 0x4D76C28, PrevCamZoomVel 0x4D76D30; LockCamParam 0x4DB2E94; CamPos/CamFov 0x4CC807A/0x4CC80A8; camera_pos 0x4DBC81C. Leads for a telescope/aim-camera FOV fix.",
+   "confidence": "static-only",
+   "source": "static disassembly of an unpatched live dump of eboot.bin"
+  },
+  {
+   "name": "V_ModelContainer",
+   "address": "0x579CF10",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [pl+0x48] (model container). Used by the head-camera caves to validate the object before reading it.",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_PoseObject",
+   "address": "0x57A0820",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [[pl+0x48]+0x18] (pose/draw object holding the bone-array slots).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_ModuleContainer",
+   "address": "0x5770610",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [pl+0x58] (module container, model->world rows).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_PhysicsSlot",
+   "address": "0x5735D70",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [pl+0x3B0].",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_PhysicsBody",
+   "address": "0x57356F0",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of the physics body X = [[pl+0x3B0]+0x68] (position at X+0x1E0).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_Holder5F8",
+   "address": "0x57A1500",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [mod+0x5F8], the bone-array holder after a respawn (slots +0xC0/+0xC8/+0x1A0/+0x230).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_Holder20",
+   "address": "0x57A0F10",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [mod+0x20] (array slot at +0x110 seen in one session).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "V_Holder5F0",
+   "address": "0x57A1680",
+   "kind": "vtable",
+   "size": null,
+   "description": "Vtable of [mod+0x5F0] (seen; not searched by the cave).",
+   "confidence": "confirmed-live",
+   "source": "read live through ps5debug (vtable of a heap object) on the console"
+  },
+  {
+   "name": "C_AssertStub",
+   "address": "0x2FBF178",
+   "kind": "code_site",
+   "size": 4,
+   "description": "Part of the 60 FPS mod: `xor rax,rax; ret` over an assert function entry (original FF 25 72 5B ...).",
+   "confidence": "confirmed-live",
+   "source": "base_mods.json; runs on console"
+  },
+  {
+   "name": "C_VsyncStub",
+   "address": "0x2483EC1",
+   "kind": "code_site",
+   "size": 1,
+   "description": "Part of the 60 FPS mod: `ret` over a vsync call (original E8 ...).",
+   "confidence": "confirmed-live",
+   "source": "base_mods.json; runs on console"
+  },
+  {
+   "name": "C_DiagFlag",
+   "address": "0x54A00F0",
+   "kind": "data",
+   "size": 1,
+   "description": "Lab hook spin flag byte (diagnostic hooks of the resolution work). Lab hooks used 0x54A0000..0x54A0300.",
+   "confidence": "confirmed-live",
+   "source": "lab hook_dump.py"
+  },
+  {
+   "name": "G_ScePadImportSlot",
+   "address": "0x57E5B30",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Game import (GOT) slot holding the address of a libScePad function (module offset 0xA30). Together with the second slot G_ScePadImportSlot2 (0x57E4E90 -> module offset 0x13C0) it gives the libScePad base: the cave checks the high dword (8), the page offset (0xA30) and the distance between the two slots (0x990), then reads the DualSense report ring at module base + 0x28BDC (12 entries x 0xE0, buttons dword first; L3 0x2, R3 0x4, touchpad 0x100000). NEVER read the library's code: system libraries are execute-only (XOM) and a read crashes the game.",
+   "confidence": "confirmed-live",
+   "source": "touchpad double-click toggle confirmed on hardware (cold start); crash analysis showed XOM on libScePad code"
+  },
+  {
+   "name": "G_ScePadImportSlot2",
+   "address": "0x57E4E90",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Second import slot into libScePad (module offset 0x13C0); used only to verify the module layout (distance to G_ScePadImportSlot = 0x990).",
+   "confidence": "confirmed-live",
+   "source": "touchpad double-click toggle confirmed on hardware (cold start); crash analysis showed XOM on libScePad code"
+  }
+ ],
+ "structures": [
+  {
+   "name": "WorldChrMan",
+   "base": "[0x593E878]",
+   "description": "World character manager (name from the game's debug strings / community convention).",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x60",
+     "type": "ptr",
+     "name": "player_ChrIns",
+     "notes": "Player ChrIns (handle 10000).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x70",
+     "type": "f32",
+     "name": "stick_delta_x",
+     "notes": "Pad rotation deltas that the manager feeds into the follow camera (cam+0x110/+0x120).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x80",
+     "type": "f32",
+     "name": "stick_delta_y",
+     "notes": "See above.",
+     "confidence": "inferred"
+    }
+   ]
+  },
+  {
+   "name": "PlayerChrIns",
+   "base": "[[0x593E878]+0x60]",
+   "description": "Player character instance ('pl' in the lab scripts and caves).",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "ptr",
+     "name": "vtable",
+     "notes": "Slot +0x458 of the vtable (SetDispMask) is an empty `ret` for the player: hiding the player through it is impossible.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x48",
+     "type": "ptr",
+     "name": "model_container",
+     "notes": "vtable 0x579CF10. Holds the pose object ([+0x18], vtable 0x57A0820) and other holders.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x58",
+     "type": "ptr",
+     "name": "module_container",
+     "notes": "vtable 0x5770610. Model->world rows R0 +0x320, R1 +0x330, R2 +0x340, translation +0x350; [+8] points back to pl.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xC0",
+     "type": "vec4f",
+     "name": "position_copy",
+     "notes": "Same value as physics X+0x1E0. Do not write copies.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xF8",
+     "type": "u32",
+     "name": "lockon_state_a",
+     "notes": "Observed 1 while locked on (and +0x110 = 2).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x3B0",
+     "type": "ptr",
+     "name": "physics_slot",
+     "notes": "vtable 0x5735D70; [+0x68] = physics body X (vtable 0x57356F0).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x3F8",
+     "type": "u32",
+     "name": "map_id",
+     "notes": "Observed 0x18010000 (m24_01) in Hunter's Dream/Yharnam tests; warp only works inside the same map id.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x400",
+     "type": "ptr",
+     "name": "sub_module_400",
+     "notes": "[+0x30] and [[pl+0x60]+0x1B0] hold further position copies (do not write).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x4D0",
+     "type": "ptr",
+     "name": "hitbox_owner",
+     "notes": "[+0xE8] holder; +0xDD0 = 8 AABB-like elements, stride 0xA0; the head element coincides with the head bone world position.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xA68",
+     "type": "ptr",
+     "name": "legacy_pose_chain",
+     "notes": "[+0x50] = model-space hkQsTransform[108] (head bone 78). EMPTY/self-pointing in fresh saves: do not use.",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "ModelContainer",
+   "base": "[pl+0x48]",
+   "description": "Model container; the animated pose arrays hang off one of its holders.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x10",
+     "type": "ptr",
+     "name": "model_10",
+     "notes": "Probed by find_entities.py; role not established.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x18",
+     "type": "ptr",
+     "name": "pose_object",
+     "notes": "vtable 0x57A0820. Holder index HOLD=0x18 in the head-camera cave. Before a respawn the bone-array slots live here.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x20",
+     "type": "ptr",
+     "name": "holder_20",
+     "notes": "vtable 0x57A0F10; array slot at +0x110 seen in one session. HOLD=0x20.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x5F0",
+     "type": "ptr",
+     "name": "holder_5f0",
+     "notes": "vtable 0x57A1680 (seen; not searched by the cave).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x5F8",
+     "type": "ptr",
+     "name": "holder_5f8",
+     "notes": "vtable 0x57A1500. After a respawn the four array pointers sit at +0xC0/+0xC8/+0x1A0/+0x230. HOLD=0x5F8.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x579CF10"
+  },
+  {
+   "name": "PoseObject",
+   "base": "[[pl+0x48]+0x18]",
+   "description": "Pose/draw object holding up to four pointers to the animated world-space bone-matrix arrays (copies of consecutive pipeline stages, about one frame apart). The slot offsets differ between sessions and between model builds.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x170",
+     "type": "u128",
+     "name": "mesh_mask",
+     "notes": "128-bit mesh mask; writing it did not change rendering.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1FC",
+     "type": "u32",
+     "name": "entity_flags",
+     "notes": "Draw-entity flags (bit 14 = drawn); semantics from read_entity.py.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x00..0x5F8",
+     "type": "ptr[]",
+     "name": "array_slots",
+     "notes": "Candidate slots scanned by the cave (step 8; the release cave scans slots 0..0x5F8 of the holders 0x18/0x20/0x5F8, older builds only 0x300..0x600). Seen: +0x430/+0x570/+0x578; +0x320/+0x328/+0x400/+0x490; +0x450. Value must be 16-byte aligned and its high dword 2..7.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x57A0820"
+  },
+  {
+   "name": "BoneMatrixArray",
+   "base": "[holder+slot]",
+   "description": "Animated world-space bone matrices: 170 x 3x4 float, row-major, stride 0x30, translation = floats 3, 7, 11 of each entry. Head = bone 68 (offset 0xCC0), neck = 67. No model->world multiply needed.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0xCC0",
+     "type": "mat3x4f",
+     "name": "head_bone_68",
+     "notes": "BONEOFF = 68*0x30; translation at +0x0C/+0x1C/+0x2C.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xC90",
+     "type": "mat3x4f",
+     "name": "neck_bone_67",
+     "notes": "",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "size": 8160
+  },
+  {
+   "name": "ModuleContainer",
+   "base": "[pl+0x58]",
+   "description": "Module container; model->world transform in row-vector convention.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x08",
+     "type": "ptr",
+     "name": "owner",
+     "notes": "= pl.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x320",
+     "type": "vec4f",
+     "name": "R0",
+     "notes": "Model->world row 0 (x axis). Rotated by FACE2.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x330",
+     "type": "vec4f",
+     "name": "R1",
+     "notes": "Row 1.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x340",
+     "type": "vec4f",
+     "name": "R2",
+     "notes": "Row 2. Model forward = -R2 for the player. Rotated by FACE2.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x350",
+     "type": "vec4f",
+     "name": "R3_translation",
+     "notes": "Model origin. Zero/NaN after a respawn - use the physics position instead.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x5770610"
+  },
+  {
+   "name": "PhysicsBody",
+   "base": "[[pl+0x3B0]+0x68]",
+   "description": "Physics body 'X' of the player (slot vtable 0x5735D70, body vtable 0x57356F0). Write position HERE, not into the copies.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x1C0",
+     "type": "vec4f",
+     "name": "position_prev",
+     "notes": "Copy (previous).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1D0",
+     "type": "vec4f",
+     "name": "angles",
+     "notes": "(pitchRad, yawRad, 0, 0). Writing yaw (X+0x1D4) persists in memory but the character does not turn until 0x1CBCF30(pl,1) runs.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1E0",
+     "type": "vec4f",
+     "name": "position",
+     "notes": "Feet position (x,y,z,1), Y up. Measured example (-111.0, -56.4, -20.0).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1F0",
+     "type": "vec4f",
+     "name": "position_next",
+     "notes": "Copy; SetPosition writes both 0x1E0 and 0x1F0.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x210",
+     "type": "u16",
+     "name": "set_pos_flags",
+     "notes": "0x0101 set by SetPosition; physics clears it (idle 0).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x32A",
+     "type": "u8",
+     "name": "set_pos_flag2",
+     "notes": "Set to 1 by SetPosition; cleared by physics.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x57356F0"
+  },
+  {
+   "name": "CameraManager",
+   "base": "[[0x593E860]+0x2830]",
+   "description": "Camera manager (0x1150 bytes). Its OWN pose (right/up/forward/position, R x U = F) is what the renderer receives; it is copied from the follow camera at 0x1836C54.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x10",
+     "type": "vec4f",
+     "name": "right",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x20",
+     "type": "vec4f",
+     "name": "up",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x30",
+     "type": "vec4f",
+     "name": "forward",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x40",
+     "type": "vec4f",
+     "name": "position",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x60",
+     "type": "ptr",
+     "name": "follow_camera",
+     "notes": "ChrFollowCam/ChrExFollowCam.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x68",
+     "type": "ptr",
+     "name": "aim_camera",
+     "notes": "ChrAimCam.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x78",
+     "type": "ptr",
+     "name": "ballista_aim_camera",
+     "notes": "BallistaAimCam.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x110",
+     "type": "ptr",
+     "name": "lock_target",
+     "notes": "Lock-on target ChrIns pointer (zero when not locked). 6 identical entries at +0x110 + n*0x80.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x120",
+     "type": "vec4f",
+     "name": "lock_point_world",
+     "notes": "Lock-on point (x,y,z,1) in world space.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x130",
+     "type": "mat3x4f",
+     "name": "lock_target_model",
+     "notes": "Target model matrix (+0x130..+0x15C).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x180",
+     "type": "vec4f",
+     "name": "lock_point_local",
+     "notes": "Lock point in target-local space (y about 1.48 m).",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "size": 4432
+  },
+  {
+   "name": "FollowCamera",
+   "base": "[[[0x593E860]+0x2830]+0x60]",
+   "description": "Follow camera. Its orientation is recomputed as a look-at from camera position to pivot; rows cannot be written from outside.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x10",
+     "type": "vec4f",
+     "name": "right",
+     "notes": "Pose rows right/up/forward/position at +0x10/+0x20/+0x30/+0x40; the manager copies them.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x50",
+     "type": "f32",
+     "name": "fov_y_rad",
+     "notes": "0.7505 rad = 43.0 deg by default; approaches the param row f5*pi/180 with a blend.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x54",
+     "type": "f32",
+     "name": "aspect",
+     "notes": "1.778.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x58",
+     "type": "f32",
+     "name": "near_plane",
+     "notes": "0.05.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x5C",
+     "type": "f32",
+     "name": "far_plane",
+     "notes": "3000.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xA0",
+     "type": "vec4f",
+     "name": "pivot_a",
+     "notes": "Pivot data (+0xA0..+0xD0): always 3.7 m along the view line (the player's pivot).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x110",
+     "type": "f32",
+     "name": "pad_rot_x",
+     "notes": "Right-stick rotation deltas (+0x110/+0x120).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x140",
+     "type": "f32",
+     "name": "pitch_derived",
+     "notes": "Derived copy, not a source of truth.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x144",
+     "type": "f32",
+     "name": "yaw_derived",
+     "notes": "Derived copy (rad).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x154",
+     "type": "f32",
+     "name": "lock_factor",
+     "notes": "1.0 when locked on; ramps over about 1 s (unsuitable as a trigger).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x180",
+     "type": "f32",
+     "name": "fulcrum_dist",
+     "notes": "Computed every frame (name inferred from debug order).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x184",
+     "type": "f32",
+     "name": "cam_dist_target",
+     "notes": "Computed every frame (4.0 typical).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x188",
+     "type": "f32",
+     "name": "cam_dist",
+     "notes": "Lerps toward param row f0.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x18C",
+     "type": "f32",
+     "name": "cast_sphere_radius",
+     "notes": "0.05.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x190",
+     "type": "f32",
+     "name": "safe_margin_rate",
+     "notes": "0.1; +0x194 max 0.3.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x198",
+     "type": "f32[]",
+     "name": "chase_fields",
+     "notes": "ChrTransChaseRate family (0.1 per frame): the camera 'draws back' when walking starts.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x2E0",
+     "type": "f32",
+     "name": "derived_copy",
+     "notes": "Derived copy.",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "ParamBlob",
+   "base": "[repo+off] ... chain [[[obj+0x68]+0x70]+0x70] or [[[repo+0x9C0]+0x70]+0x70]",
+   "description": "Generic FD4 PARAM blob layout seen for LOCK_CAM_PARAM_ST and LOD_BANK.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x0A",
+     "type": "u16",
+     "name": "row_count",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x0C",
+     "type": "char[]",
+     "name": "name",
+     "notes": "e.g. 'LOCK_CAM_PARAM_ST', 'LOD_BANK'.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x40",
+     "type": "row_entry[]",
+     "name": "row_table",
+     "notes": "24 bytes per entry: u32 id, u32 pad, u64 dataOffset (from blob), u64 nameOffset. Blob address changes every launch.",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "LockCamParamRow",
+   "base": "[blob + dataOffset]",
+   "description": "LOCK_CAM_PARAM_ST row (72 rows x 32 B). Persistent data: edits stay.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "f32",
+     "name": "distance",
+     "notes": "Camera distance (4.0 typical; bosses 3.7..6.2). Doubling all rows worked.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x04",
+     "type": "f32",
+     "name": "pitch",
+     "notes": "-40.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x08",
+     "type": "f32",
+     "name": "f2",
+     "notes": "0.45.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x0C",
+     "type": "f32",
+     "name": "pivot_height",
+     "notes": "1.42.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x10",
+     "type": "f32",
+     "name": "f4",
+     "notes": "22.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x14",
+     "type": "f32",
+     "name": "fov_deg",
+     "notes": "43 (a few rows 48). Code clamps the result to 38..48 degrees.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x18",
+     "type": "i32",
+     "name": "f6",
+     "notes": "9/5 or -1.",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x1C",
+     "type": "i32",
+     "name": "f7",
+     "notes": "",
+     "confidence": "inferred"
+    }
+   ],
+   "size": 32
+  },
+  {
+   "name": "LodBankRow",
+   "base": "[LOD_BANK blob + dataOffset]",
+   "description": "LOD_BANK row (64 rows, 20 B each): {float A, B, C, D; u32 E}. common_parts_lod_param_id refers to rows. A and C are distances in metres (typical A=5, C=20; rows 0-7: 15/30, 40/1000, 15/1000, 1000/2000; rows 19 and 63: 9998/9999 = never; row 15: 30/100). Meaning (A = LOD0->LOD1, C = LOD1->LOD2) is inferred.",
+   "confidence": "inferred",
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "f32",
+     "name": "A",
+     "notes": "",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x04",
+     "type": "f32",
+     "name": "B",
+     "notes": "",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x08",
+     "type": "f32",
+     "name": "C",
+     "notes": "",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x0C",
+     "type": "f32",
+     "name": "D",
+     "notes": "",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x10",
+     "type": "u32",
+     "name": "E",
+     "notes": "",
+     "confidence": "inferred"
+    }
+   ],
+   "size": 20
+  },
+  {
+   "name": "SamplerTable",
+   "base": "[[0x59406C8]+0x250]+0x360",
+   "description": "Sampler descriptors, 19 x 0x38 bytes. Aniso samplers (indices 8..15 and 17) default to MaxAnisotropy 4, bias 0. Writing the table after init has NO visible effect (3 scene tests).",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "f32",
+     "name": "mipLODBias",
+     "notes": "Live write of +2.0 and -0.75: no visible effect.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x04",
+     "type": "i32",
+     "name": "MaxAnisotropy",
+     "notes": "Value written by the Anisotropic mod; table is read at sampler creation (init).",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "size": 1064
+  },
+  {
+   "name": "GameAAPass",
+   "base": "heap instance of vtable 0x56E7980 (4 instances)",
+   "description": "The game's own AA pass. Active instance in the 4 tested scenes: Enable=1, mode=3 (DLAA), threshold 0.1, lambda 2.44, epsilon 0.25.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x08",
+     "type": "u8",
+     "name": "ignore_param_from_outside",
+     "notes": "1 keeps the pass's local values (0x12596F0 stops copying the scene's).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x09",
+     "type": "u8",
+     "name": "enable",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x0C",
+     "type": "i32",
+     "name": "mode",
+     "notes": "0 FXAA.ppo, 1 FXAA3.ppo, 2 FXAA3HQ.ppo, 3 DLAA.ppo.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x10",
+     "type": "f32[4]",
+     "name": "fxaa_params",
+     "notes": "alpha, reduceMin, reduceMul, spanMax (defaults 1, 1/128, 1/8, 8).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x28",
+     "type": "f32",
+     "name": "dlaa_threshold",
+     "notes": "Default 0.1; the DLAA mod uses 0.3.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2C",
+     "type": "f32",
+     "name": "dlaa_lambda",
+     "notes": "Static default 2.0; live scene value 2.44.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x30",
+     "type": "f32",
+     "name": "dlaa_epsilon",
+     "notes": "0.25.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x56E7980"
+  },
+  {
+   "name": "YebisContext",
+   "base": "[0x5865ED0]",
+   "description": "YEBIS CPostEffect context.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x130",
+     "type": "u8[0x30]",
+     "name": "init_flags",
+     "notes": "+0x145 ANTIALIAS_TEMPORAL, +0x147 GAUSSIANBLUR, +0x14F ANTIALIAS, +0x150 ANTIALIAS_DISTANCEFALLOFF (set by init flags).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x57C",
+     "type": "f32",
+     "name": "camera_near",
+     "notes": "0.05 (+0x580 far 3000).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x6D5",
+     "type": "u8",
+     "name": "falloff_dirty",
+     "notes": "Set to 1 after SetAntialiasFalloffDistance; the game consumes it immediately.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xB8C",
+     "type": "u8",
+     "name": "taa_enable",
+     "notes": "0 by default; the game never enables it.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xB90",
+     "type": "i32",
+     "name": "taa_state",
+     "notes": "2.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xB98",
+     "type": "f32",
+     "name": "taa_weight",
+     "notes": "0.05 (+0xB9C 0, +0xBA0/+0xBA4 0.1, +0xBA8 0.001).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xBBC",
+     "type": "u8",
+     "name": "aa_enable",
+     "notes": "YEBIS FXAA2 enable (0 normally).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xBC0",
+     "type": "f32",
+     "name": "aa_falloff_near",
+     "notes": "+0xBC4 far.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xC99",
+     "type": "u8",
+     "name": "taa_active",
+     "notes": "Computed every frame (enable && [ctx+0x6F6]==0).",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "ScenePostEffectParams",
+   "base": "0x59406E0 (static)",
+   "description": "Scene post-effect parameters. Values change per scene and are rewritten every frame.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x1AC",
+     "type": "u8",
+     "name": "dof_enable",
+     "notes": "1 in Hunter's Dream.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1B0",
+     "type": "f32",
+     "name": "dof_focus_distance",
+     "notes": "1.0.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1B4",
+     "type": "f32",
+     "name": "aperture_f",
+     "notes": "5.6.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x1C0",
+     "type": "f32",
+     "name": "ccd_size",
+     "notes": "43.27.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x220",
+     "type": "u8",
+     "name": "yebis_aa_enable",
+     "notes": "0 in Yharnam and Hunter's Dream (game AA is the separate DLAA pass).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x224",
+     "type": "i32",
+     "name": "aa_type",
+     "notes": "AntiAliasType (inferred position).",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x2D0",
+     "type": "u8",
+     "name": "custom_dof_enable",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2D4",
+     "type": "u8",
+     "name": "near_custom_enable",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2D8",
+     "type": "u8",
+     "name": "far_custom_enable",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2EC",
+     "type": "f32",
+     "name": "dof_far_start",
+     "notes": "Hunter's Dream 10 m, Yharnam 100 m.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2F0",
+     "type": "f32",
+     "name": "dof_far_end",
+     "notes": "50 m / 150 m.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2F4",
+     "type": "f32",
+     "name": "dof_far_coc_size",
+     "notes": "0.3 / 0.05.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x2F8",
+     "type": "f32",
+     "name": "dof_far_coc_scale",
+     "notes": "0.016 / 0.098.",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "SprjGraphics",
+   "base": "[0x59406C8]",
+   "description": "Graphics object (0x6A0 bytes).",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x90",
+     "type": "ptr",
+     "name": "render_target_table",
+     "notes": "Entries of 0xB0 bytes: +0x68 colour RT, +0x70 depth RT, +0x80/+0x84 W/H; entry0 +0x68 = main buffer RT (+0x40 texture).",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0xF0",
+     "type": "u32",
+     "name": "width_copy",
+     "notes": "Captured at creation; +0xF4 height. != render-resolution global means a patch landed too late.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x250",
+     "type": "ptr",
+     "name": "sampler_container",
+     "notes": "Sampler table at +0x360 of the pointee.",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "size": 1696
+  },
+  {
+   "name": "OnionFpsSample",
+   "base": "FTP file /system_tmp/onionhen/fps_sample (128 bytes)",
+   "description": "Daemon -> ShellUI shared sample (public format of the patched onionHEN).",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "u32",
+     "name": "magic",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x04",
+     "type": "u32",
+     "name": "seq",
+     "notes": "Seqlock counter.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x08",
+     "type": "i32",
+     "name": "pid",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x0C",
+     "type": "u8",
+     "name": "valid",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x0D",
+     "type": "u8",
+     "name": "source",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x10",
+     "type": "f32",
+     "name": "fps",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x18",
+     "type": "u64",
+     "name": "unix_ns",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x20",
+     "type": "char[16]",
+     "name": "title_id",
+     "notes": "",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x30",
+     "type": "u32",
+     "name": "game_mem_mb",
+     "notes": "Added by the patch.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x34",
+     "type": "char[72]",
+     "name": "dbg",
+     "notes": "Probe text for the overlay DBG group.",
+     "confidence": "confirmed-live"
+    },
+    {
+     "offset": "0x7C",
+     "type": "u8[4]",
+     "name": "reserved",
+     "notes": "",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "size": 128
+  },
+  {
+   "name": "TimestepObject",
+   "base": "heap object (found by scanning for dt 0x3C888889 at +0x18)",
+   "description": "Fixed time-step object.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x18",
+     "type": "u32(f32 bits)",
+     "name": "dt",
+     "notes": "0x3C888889 = 1/60 with the 60 FPS mod. An initialisation setting: writing 1e-6 did not freeze time.",
+     "confidence": "confirmed-live"
+    }
+   ]
+  },
+  {
+   "name": "FFXSceneCtrl",
+   "base": "heap instance of vtable 0x57B9080",
+   "description": "FFX effect system scene controller.",
+   "confidence": "confirmed-live",
+   "fields": [
+    {
+     "offset": "0x5C0",
+     "type": "u8",
+     "name": "update_multithread_enable",
+     "notes": "",
+     "confidence": "inferred"
+    },
+    {
+     "offset": "0x5C6",
+     "type": "u8",
+     "name": "sfx_off",
+     "notes": "1 = effects off (ground fog and sparkles; flames of bonfires/torches too, their light stays).",
+     "confidence": "confirmed-live"
+    }
+   ],
+   "vtable": "0x57B9080"
+  },
+  {
+   "name": "PadReportRing",
+   "base": "libScePad module base + 0x28BDC (module base = [0x57E5B30] - 0xA30)",
+   "description": "Ring of 12 DualSense reports (newest overwrites oldest). The head-camera cave ORs the first dword of every report so a press in the last ~50 ms is seen. Layout taken from the generator; unverified live.",
+   "confidence": "inferred",
+   "size": 2688,
+   "fields": [
+    {
+     "offset": "0x00",
+     "type": "u32",
+     "name": "buttons",
+     "notes": "per report (stride 0xE0). Touchpad click = 0x100000. (ScePad SDK values for L3/R3 are 0x2/0x4: general knowledge, not verified in this game.)",
+     "confidence": "inferred"
+    }
+   ]
+  }
+ ],
+ "caves": [
+  {
+   "name": "head_camera_epilogue_cave",
+   "address": "0x54A0780",
+   "size": 403,
+   "purpose": "FACE2: rotates model->world rows R0/R2 so the displayed body faces the camera direction (display only). Runs in the follow-camera epilogue. Ends with the displaced `add rsp,0x3d8` and a jump back to 0x183F782. Acts only while MODE (the head camera) is on.",
+   "mod": "FPS head camera: body faces the view",
+   "scope": "release",
+   "generator": "tools/mods/make_head_camera_mod.py",
+   "address_end": "0x54A0905"
+  },
+  {
+   "name": "head_camera_cast_cave",
+   "address": "0x54A1100",
+   "size": 27,
+   "purpose": "Camera collision cast stub: returns 0 (no hit) when NOCOLL set, else runs the displaced `push rbp; mov rbp,rsp; push r15` and jumps to 0x1C090E6.",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release",
+   "generator": "tools/mods/make_head_camera_mod.py",
+   "address_end": "0x54A111A"
+  },
+  {
+   "name": "head_camera_manager_cave",
+   "address": "0x54A1600",
+   "size": 1761,
+   "purpose": "Camera-manager cave: touchpad double-click toggle of MODE (libScePad report ring), mode-dependent FOV (copies FPSFOV/TPFOV into the Wide-FOV constant every frame), validated pointer walk, holder/slot search, 30 Hz latch + smoothing, height floor, distance guard, head position replaces the position row, then the AIM block re-orients to the lock-on target. Subroutines H (holder) and P (array plausibility) are inside. 1761 bytes: written as two cheat entries (1000 + 761 bytes) because onionHEN's entries are limited to 1024 bytes (ONION_MAX_PATCH_BYTES); see docs/agents/70-onionhen-cheat-engine.md hazard 1.",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release",
+   "generator": "tools/mods/make_head_camera_mod.py",
+   "address_end": "0x54A1C3B"
+  },
+  {
+   "name": "head_camera_aim_constants",
+   "address": "0x54A0EA0",
+   "size": 96,
+   "purpose": "AIM constants: 8 floats (AIMMIN2 0.09, AIMMAX2 3600, AIMCOS 0.3, AIMWMIN 0.05 (unused), ONE 1.0, EPS 1e-6, BETA 0.3, GAMMA 0.35 (unused)) + masks MASKXYZ/MASKRAND/SIGNZ/SIGNALL (4 x 16 B). Lives inside the data block.",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release",
+   "generator": "tools/mods/make_head_camera_mod.py"
+  },
+  {
+   "name": "dlaa_threshold_cave",
+   "address": "0x54A1300",
+   "size": 13,
+   "purpose": "`vmovss xmm0,[rip+CONST]; jmp 0x1259714`.",
+   "mod": "DLAA threshold 0.3",
+   "scope": "release",
+   "generator": "tools/mods/make_dlaa_mod.py"
+  },
+  {
+   "name": "dlaa_threshold_constant",
+   "address": "0x54A1340",
+   "size": 4,
+   "purpose": "float threshold (0.3).",
+   "mod": "DLAA threshold 0.3",
+   "scope": "release",
+   "generator": "tools/mods/make_dlaa_mod.py"
+  },
+  {
+   "name": "aniso_stub",
+   "address": "0x54A0400",
+   "size": 134,
+   "purpose": "movabs r10,&SprjGraphics; walks [[g]+0x250]; writes MaxAnisotropy=16 into sampler fields i=8..15,17 (stride 0x38, +0x364 base); tail-jumps to 0xFB37F0. Uses rax/r10 only.",
+   "mod": "Anisotropic filtering 16x",
+   "scope": "release",
+   "generator": "tools/mods/make_aniso_mod.py"
+  },
+  {
+   "name": "fov_constant",
+   "address": "0x54A0500",
+   "size": 4,
+   "purpose": "float pi/180*scale; the instruction at 0x183AF56 reads it through a redirected disp32.",
+   "mod": "Wide FOV",
+   "scope": "release",
+   "generator": "tools/mods/make_fov_mod.py"
+  },
+  {
+   "name": "head_camera_data_block",
+   "address": "0x54A0E00",
+   "size": 316,
+   "purpose": "Data block of the head camera (see data_block). Spans 0x54A0E00..0x54A0F3B.",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release",
+   "generator": "tools/mods/make_head_camera_mod.py"
+  },
+  {
+   "name": "dev_hood_view_flag_and_constants",
+   "address": "0x54A0600",
+   "size": 16,
+   "purpose": "Lab 'hood view' FPS mod: FLAG 0x54A0600, DIST 0x54A0604, HEIGHT 0x54A0608, FWD 0x54A060C; caves 0x54A0620 and 0x54A0680.",
+   "mod": "lab hood-view mod",
+   "scope": "dev-only",
+   "generator": "lab make_fps_camera_mod.py (not shipped)"
+  },
+  {
+   "name": "dev_pose_lock_data",
+   "address": "0x54A0700",
+   "size": 128,
+   "purpose": "Lab pose-lock / call-service data: FLAG 0x54A0700, CALL 0x54A0702, CNT 0x54A0704, ROW0..3 0x54A0710..0x54A0740, FN 0x54A0750, ARG0..3 0x54A0758..0x54A0770, RET 0x54A0778. Scratch for warp: MAPID 0x54A0C00, POS 0x54A0C10, ROT 0x54A0C20 (older notes said 0x54A0900/10/20; the script says 0x54A0C00).",
+   "mod": "lab pose-lock",
+   "scope": "dev-only",
+   "generator": "tools/dev/mods-live/make_cam_pose_cave.py"
+  },
+  {
+   "name": "dev_pose_lock_epilogue_cave",
+   "address": "0x54A0780",
+   "size": 961,
+   "purpose": "Lab pose-lock + call service + legacy head camera cave (961 bytes, 0x54A0780..0x54A0B41) at the SAME address as the release epilogue cave. Never run the lab install and the release mod at the same time.",
+   "mod": "lab pose-lock",
+   "scope": "dev-only",
+   "generator": "tools/dev/mods-live/make_cam_pose_cave.py"
+  },
+  {
+   "name": "dev_entry_cave",
+   "address": "0x54A1000",
+   "size": 57,
+   "purpose": "Lab follow-camera entry cave (restores the game's position row).",
+   "mod": "lab pose-lock",
+   "scope": "dev-only",
+   "generator": "tools/dev/mods-live/make_cam_pose_cave.py"
+  },
+  {
+   "name": "dev_cast_cave",
+   "address": "0x54A1100",
+   "size": 27,
+   "purpose": "Lab camera-cast cave at the same address as the release cast cave.",
+   "mod": "lab pose-lock",
+   "scope": "dev-only",
+   "generator": "tools/dev/mods-live/make_cam_pose_cave.py"
+  },
+  {
+   "name": "dev_manager_cave",
+   "address": "0x54A1200",
+   "size": 228,
+   "purpose": "Lab manager-mode cave (release uses 0x54A1600).",
+   "mod": "lab pose-lock",
+   "scope": "dev-only",
+   "generator": "tools/dev/mods-live/make_cam_pose_cave.py"
+  }
+ ],
+ "hooks": [
+  {
+   "name": "follow_camera_epilogue",
+   "address": "0x183F77B",
+   "length": 7,
+   "original_bytes": "4881c4d8030000",
+   "cave": "0x54A0780",
+   "back": "0x183F782",
+   "type": "jmp-rel32",
+   "mod": "FPS head camera (core entry; flag FACE2 in its own mod)",
+   "scope": "release",
+   "note": "jmp + 2 NOPs over `add rsp,0x3d8`."
+  },
+  {
+   "name": "camera_cast",
+   "address": "0x1C090E0",
+   "length": 6,
+   "original_bytes": "554889e54157",
+   "cave": "0x54A1100",
+   "back": "0x1C090E6",
+   "type": "jmp-rel32",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release",
+   "note": "jmp + NOP over 3 whole instructions."
+  },
+  {
+   "name": "manager_position_store",
+   "address": "0x1836C54",
+   "length": 5,
+   "original_bytes": "c5f8295b40",
+   "cave": "0x54A1600",
+   "back": "0x1836C59",
+   "type": "jmp-rel32",
+   "mod": "FPS head camera (experimental)",
+   "scope": "release"
+  },
+  {
+   "name": "dlaa_threshold_load",
+   "address": "0x125970F",
+   "length": 5,
+   "original_bytes": "c5fa104618",
+   "cave": "0x54A1300",
+   "back": "0x1259714",
+   "type": "jmp-rel32",
+   "mod": "DLAA threshold 0.3",
+   "scope": "release",
+   "note": "Replaces the load; the cave loads a constant instead (original instruction is not re-executed)."
+  },
+  {
+   "name": "aniso_callsite",
+   "address": "0x25D803D",
+   "length": 5,
+   "original_bytes": "e8aeb79dfe",
+   "cave": "0x54A0400",
+   "back": "0xFB37F0",
+   "type": "call-redirect",
+   "mod": "Anisotropic filtering 16x",
+   "scope": "release",
+   "note": "call rel32 retargeted to the stub; stub tail-jumps to the original callee 0xFB37F0."
+  },
+  {
+   "name": "fov_operand",
+   "address": "0x183AF5A",
+   "length": 4,
+   "original_bytes": "faae4e03",
+   "cave": null,
+   "back": null,
+   "type": "operand-redirect",
+   "mod": "Wide FOV",
+   "scope": "release",
+   "note": "Only the disp32 of `vmulss xmm1,xmm1,[rip+disp]` is changed to point at the cave constant 0x54A0500. Write the constant first, the displacement second."
+  },
+  {
+   "name": "dof_enable",
+   "address": "0x25D7A8B",
+   "length": 3,
+   "original_bytes": "0f95c0",
+   "cave": null,
+   "back": null,
+   "type": "inline",
+   "mod": "No depth of field",
+   "scope": "release",
+   "note": "`setne al` -> `xor eax,eax; nop` (31 C0 90). Must be one atomic write."
+  },
+  {
+   "name": "dev_hood_dist",
+   "address": "0x183AE68",
+   "length": 5,
+   "original_bytes": "c5fa100e",
+   "cave": "0x54A0620",
+   "back": "0x183AE75",
+   "type": "jmp-rel32",
+   "mod": "lab hood-view mod",
+   "scope": "dev-only",
+   "note": "Re-emits the next instruction `vmovss xmm2,[r13+0x188]` in the cave."
+  },
+  {
+   "name": "dev_hood_height",
+   "address": "0x183AEEF",
+   "length": 5,
+   "original_bytes": "c5fa105e0c",
+   "cave": "0x54A0680",
+   "back": "0x183AEF4",
+   "type": "jmp-rel32",
+   "mod": "lab hood-view mod",
+   "scope": "dev-only"
+  },
+  {
+   "name": "dev_follow_camera_entry",
+   "address": "0x183AC60",
+   "length": 6,
+   "original_bytes": "554889e54157",
+   "cave": "0x54A1000",
+   "back": "0x183AC66",
+   "type": "jmp-rel32",
+   "mod": "lab head camera (epilogue mode)",
+   "scope": "dev-only",
+   "note": "Gives the game its own position row back before it reads its state."
+  },
+  {
+   "name": "dev_legacy_pose_a",
+   "address": "0x183B399",
+   "length": 6,
+   "original_bytes": "c4c178294510",
+   "cave": null,
+   "back": null,
+   "type": "jmp-rel32",
+   "mod": "lab first attempt",
+   "scope": "dev-only",
+   "note": "Legacy hooks removed by scenelib.install(): 0x183B399 and 0x183B649 (orig c4c178295540)."
+  },
+  {
+   "name": "dev_pose_lock_epilogue",
+   "address": "0x183F77B",
+   "length": 7,
+   "original_bytes": "4881c4d8030000",
+   "cave": "0x54A0780",
+   "back": "0x183F782",
+   "type": "jmp-rel32",
+   "mod": "lab pose-lock / call service",
+   "scope": "dev-only",
+   "note": "Same hook address as the release epilogue hook; written by scenelib.install() (hook bytes e90010c6039090)."
+  },
+  {
+   "name": "dev_cast",
+   "address": "0x1C090E0",
+   "length": 6,
+   "original_bytes": "554889e54157",
+   "cave": "0x54A1100",
+   "back": "0x1C090E6",
+   "type": "jmp-rel32",
+   "mod": "lab head camera",
+   "scope": "dev-only",
+   "note": "Same address as the release cast hook."
+  },
+  {
+   "name": "dev_manager",
+   "address": "0x1836C54",
+   "length": 5,
+   "original_bytes": "c5f8295b40",
+   "cave": "0x54A1200",
+   "back": "0x1836C59",
+   "type": "jmp-rel32",
+   "mod": "lab head camera (manager mode)",
+   "scope": "dev-only",
+   "note": "Same hook address as the release manager hook but a different cave (release 0x54A1600)."
+  }
+ ],
+ "data_block": {
+  "base": "0x54A0E00",
+  "span": "0x54A0E00..0x54A0F3B",
+  "alignment": "16-byte vectors are 16-byte aligned (vmovaps targets)",
+  "write_order": "data first, caves second, hooks last; MODE flag is the last entry of the core mod; AIM/FACE2/PADTOG flags are separate entries. ARROFF/COOL/HOLD are cave-owned state and are never written by a cheat entry.",
+  "fields": [
+   {
+    "offset": "0x04",
+    "address": "0x54A0E04",
+    "name": "BONEOFF",
+    "type": "i32",
+    "size": 4,
+    "default": 3264,
+    "description": "Byte offset of the head bone matrix inside the array: bone*0x30 (68 -> 0xCC0).",
+    "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
+   },
+   {
+    "offset": "0x08",
+    "address": "0x54A0E08",
+    "name": "OFF_R",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0,
+    "description": "Right offset in metres along the game camera's right row (0).",
+    "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
+   },
+   {
+    "offset": "0x0C",
+    "address": "0x54A0E0C",
+    "name": "OFF_U",
+    "type": "f32",
+    "size": 4,
+    "default": 0.17,
+    "description": "Up offset in metres along the camera up row (0.17).",
+    "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
+   },
+   {
+    "offset": "0x10",
+    "address": "0x54A0E10",
+    "name": "OFF_F",
+    "type": "f32",
+    "size": 4,
+    "default": 0.32,
+    "description": "Forward offset in metres along the camera forward row (0.32; 0.22 let the model's face poke in front of the camera when walking).",
+    "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
+   },
+   {
+    "offset": "0x14",
+    "address": "0x54A0E14",
+    "name": "ARROFF",
+    "type": "i32",
+    "size": 4,
+    "default": 0,
+    "description": "Slot offset of the working bone-array pointer inside the holder. CAVE-OWNED cached state: not written by the cheat file (starts at 0 in zeroed memory), maintained by the cave, rescanned over slots 0..0x5F8 on failure.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x18",
+    "address": "0x54A0E18",
+    "name": "LIMIT",
+    "type": "f32",
+    "size": 4,
+    "default": 100.0,
+    "description": "Squared maximum head-to-game-camera distance (100.0 = 10 m); beyond it the game camera is kept (cutscenes, garbage).",
+    "initialised_by": "cheat entry at 0x54A0E18 (20 bytes: LIMIT, MINN, YMIN, YMAX, R2)"
+   },
+   {
+    "offset": "0x1C",
+    "address": "0x54A0E1C",
+    "name": "MINN",
+    "type": "f32",
+    "size": 4,
+    "default": 0.5,
+    "description": "FACE2 guard: cos^2+sin^2 must be >= this (0.5).",
+    "initialised_by": "cheat entry at 0x54A0E18 (20 bytes: LIMIT, MINN, YMIN, YMAX, R2)"
+   },
+   {
+    "offset": "0x20",
+    "address": "0x54A0E20",
+    "name": "YMIN",
+    "type": "f32",
+    "size": 4,
+    "default": -0.5,
+    "description": "Plausibility window lower bound: head above origin by more than this (-0.5; rolls bring the head to 0.1 m).",
+    "initialised_by": "cheat entry at 0x54A0E18 (20 bytes: LIMIT, MINN, YMIN, YMAX, R2)"
+   },
+   {
+    "offset": "0x24",
+    "address": "0x54A0E24",
+    "name": "YMAX",
+    "type": "f32",
+    "size": 4,
+    "default": 2.4,
+    "description": "Plausibility window upper bound (2.4 m).",
+    "initialised_by": "cheat entry at 0x54A0E18 (20 bytes: LIMIT, MINN, YMIN, YMAX, R2)"
+   },
+   {
+    "offset": "0x28",
+    "address": "0x54A0E28",
+    "name": "R2",
+    "type": "f32",
+    "size": 4,
+    "default": 2.25,
+    "description": "Squared maximum horizontal distance of the head from the model origin (2.25 = 1.5 m).",
+    "initialised_by": "cheat entry at 0x54A0E18 (20 bytes: LIMIT, MINN, YMIN, YMAX, R2)"
+   },
+   {
+    "offset": "0x2C",
+    "address": "0x54A0E2C",
+    "name": "COOL",
+    "type": "u32",
+    "size": 4,
+    "default": 0,
+    "description": "CAVE-OWNED scan back-off counter (reloaded with 120 frames after a failed scan); not written by the cheat file.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x30",
+    "address": "0x54A0E30",
+    "name": "HMIN",
+    "type": "f32",
+    "size": 4,
+    "default": 1.25,
+    "description": "Height floor: camera never below origin.y + HMIN (1.25 m); walking head height varies ~0.22 m, 1.40 clipped the bobbing.",
+    "initialised_by": "cheat entry at 0x54A0E30 (12 bytes: HMIN, SNAP2, ALPHA)"
+   },
+   {
+    "offset": "0x34",
+    "address": "0x54A0E34",
+    "name": "SNAP2",
+    "type": "f32",
+    "size": 4,
+    "default": 1.0,
+    "description": "Smoothing: a jump larger than sqrt(SNAP2) metres snaps instead of easing (1.0).",
+    "initialised_by": "cheat entry at 0x54A0E30 (12 bytes: HMIN, SNAP2, ALPHA)"
+   },
+   {
+    "offset": "0x38",
+    "address": "0x54A0E38",
+    "name": "ALPHA",
+    "type": "f32",
+    "size": 4,
+    "default": 0.5,
+    "description": "Smoothing factor S += ALPHA*(T-S) every frame (0.5); removes 30 Hz stepping of the bobbing.",
+    "initialised_by": "cheat entry at 0x54A0E30 (12 bytes: HMIN, SNAP2, ALPHA)"
+   },
+   {
+    "offset": "0x3C",
+    "address": "0x54A0E3C",
+    "name": "HOLD",
+    "type": "u32",
+    "size": 4,
+    "default": 0,
+    "description": "CAVE-OWNED: which holder of the model container keeps the arrays (0x18, 0x20 or 0x5F8); not written by the cheat file (starts at 0, so the first run scans).",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x40",
+    "address": "0x54A0E40",
+    "name": "LASTH",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Latched head position (array value) taken when the array value last changed (30 Hz pose).",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x50",
+    "address": "0x54A0E50",
+    "name": "LASTO",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Latched model origin of the same frame.",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x60",
+    "address": "0x54A0E60",
+    "name": "OFFS",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Smoothed head offset S (camera = origin(now) + S).",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x70",
+    "address": "0x54A0E70",
+    "name": "NOCOLL",
+    "type": "u8",
+    "size": 1,
+    "default": 1,
+    "description": "1 = camera collision casts return 'no hit'. Entry on=01 off=00 in the core mod.",
+    "initialised_by": "head camera core mod entry (on 01 / off 00)"
+   },
+   {
+    "offset": "0x71",
+    "address": "0x54A0E71",
+    "name": "MODE",
+    "type": "u8",
+    "size": 1,
+    "default": 1,
+    "description": "1 = camera-manager position override active. Written LAST when applying (switches the mod on). Toggled by the touchpad double click.",
+    "initialised_by": "head camera core mod entry (on 01 / off 00), last entry"
+   },
+   {
+    "offset": "0x72",
+    "address": "0x54A0E72",
+    "name": "AIM",
+    "type": "u8",
+    "size": 1,
+    "default": 0,
+    "description": "1 = re-aim at the lock-on target (needs MODE). Own cheat mod.",
+    "initialised_by": "AIM mod (on 01 / off 00)"
+   },
+   {
+    "offset": "0x73",
+    "address": "0x54A0E73",
+    "name": "FACE2",
+    "type": "u8",
+    "size": 1,
+    "default": 0,
+    "description": "1 = rotate displayed model rows to face the camera (hides coat/hood cloth). Own cheat mod.",
+    "initialised_by": "FACE2 mod (on 01 / off 00)"
+   },
+   {
+    "offset": "0x75",
+    "address": "0x54A0E75",
+    "name": "PADTOG",
+    "type": "u8",
+    "size": 1,
+    "default": 1,
+    "description": "Enables the touchpad double-click toggle of MODE. Entry on=01 off=00 in the core mod.",
+    "initialised_by": "head camera core mod entry (on 01 / off 00)"
+   },
+   {
+    "offset": "0x76",
+    "address": "0x54A0E76",
+    "name": "PADPREV",
+    "type": "u8",
+    "size": 1,
+    "default": "runtime",
+    "description": "Previous touchpad button state (edge detection).",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x78",
+    "address": "0x54A0E78",
+    "name": "FRAME",
+    "type": "u32",
+    "size": 4,
+    "default": "runtime",
+    "description": "Frame counter incremented by the pad code on every run with a valid libScePad layout.",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x7C",
+    "address": "0x54A0E7C",
+    "name": "PADLAST",
+    "type": "u32",
+    "size": 4,
+    "default": "runtime",
+    "description": "FRAME value of the last rising edge; a second click within 30 frames (about 0.5 s) toggles MODE and clears this to 0.",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x90",
+    "address": "0x54A0E90",
+    "name": "FALLV",
+    "type": "vec4f",
+    "size": 16,
+    "default": [
+     0.0,
+     1.53,
+     0.0,
+     0.0
+    ],
+    "description": "Fallback head offset (origin + FALLV) used when no bone array is found; keeps first person without bobbing.",
+    "initialised_by": "cheat entry at 0x54A0E90"
+   },
+   {
+    "offset": "0xA0",
+    "address": "0x54A0EA0",
+    "name": "AIMMIN2",
+    "type": "f32",
+    "size": 4,
+    "default": 0.09,
+    "description": "Squared minimum target distance (0.3 m).",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xA4",
+    "address": "0x54A0EA4",
+    "name": "AIMMAX2",
+    "type": "f32",
+    "size": 4,
+    "default": 3600.0,
+    "description": "Squared maximum target distance (60 m).",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xA8",
+    "address": "0x54A0EA8",
+    "name": "AIMCOS",
+    "type": "f32",
+    "size": 4,
+    "default": 0.3,
+    "description": "Minimum cos(angle) between the game's forward and the target direction (target ignored below).",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xAC",
+    "address": "0x54A0EAC",
+    "name": "AIMWMIN",
+    "type": "f32",
+    "size": 4,
+    "default": 0.05,
+    "description": "Defined but not read by the current cave.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xB0",
+    "address": "0x54A0EB0",
+    "name": "ONE",
+    "type": "f32",
+    "size": 4,
+    "default": 1.0,
+    "description": "Constant 1.0.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xB4",
+    "address": "0x54A0EB4",
+    "name": "EPS",
+    "type": "f32",
+    "size": 4,
+    "default": 1e-06,
+    "description": "Looking-straight-up/down guard on h^2.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xB8",
+    "address": "0x54A0EB8",
+    "name": "BETA",
+    "type": "f32",
+    "size": 4,
+    "default": 0.3,
+    "description": "Easing factor of the aim offset toward the target per frame.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xBC",
+    "address": "0x54A0EBC",
+    "name": "GAMMA",
+    "type": "f32",
+    "size": 4,
+    "default": 0.35,
+    "description": "Defined but not read by the current cave.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xC0",
+    "address": "0x54A0EC0",
+    "name": "MASKXYZ",
+    "type": "u32[4]",
+    "size": 16,
+    "default": "FFFFFFFF FFFFFFFF FFFFFFFF 00000000",
+    "description": "Mask keeping x,y,z.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xD0",
+    "address": "0x54A0ED0",
+    "name": "MASKRAND",
+    "type": "u32[4]",
+    "size": 16,
+    "default": "FFFFFFFF 00000000 FFFFFFFF 00000000",
+    "description": "Mask keeping x and z (right-vector build).",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xE0",
+    "address": "0x54A0EE0",
+    "name": "SIGNZ",
+    "type": "u32[4]",
+    "size": 16,
+    "default": "00000000 00000000 80000000 00000000",
+    "description": "Sign bit for z (right = (Vz,0,-Vx,0)).",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0xF0",
+    "address": "0x54A0EF0",
+    "name": "SIGNALL",
+    "type": "u32[4]",
+    "size": 16,
+    "default": "80000000 x4",
+    "description": "Sign bit for all lanes.",
+    "initialised_by": "cheat entry at 0x54A0EA0 (96 bytes)"
+   },
+   {
+    "offset": "0x118",
+    "address": "0x54A0F18",
+    "name": "TR",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0,
+    "description": "Aim offset along the game's right row (camera space). Persists after the lock is released; decays only while the user turns the camera.",
+    "initialised_by": "cheat entry at 0x54A0F18"
+   },
+   {
+    "offset": "0x11C",
+    "address": "0x54A0F1C",
+    "name": "TU",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0,
+    "description": "Aim offset along the game's up row.",
+    "initialised_by": "cheat entry at 0x54A0F18"
+   },
+   {
+    "offset": "0x120",
+    "address": "0x54A0F20",
+    "name": "FPREV",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Previous frame's game forward row (turn detection).",
+    "initialised_by": "runtime (zero at start)"
+   },
+   {
+    "offset": "0x130",
+    "address": "0x54A0F30",
+    "name": "DECAY",
+    "type": "f32",
+    "size": 4,
+    "default": 0.97,
+    "description": "Per-frame multiplier of TR/TU while the user turns the camera (0.97).",
+    "initialised_by": "cheat entry at 0x54A0F30"
+   },
+   {
+    "offset": "0x134",
+    "address": "0x54A0F34",
+    "name": "MOTCOS",
+    "type": "f32",
+    "size": 4,
+    "default": 0.99998,
+    "description": "Turn detection: cos between consecutive game forward rows below this means the camera is being turned (0.99998).",
+    "initialised_by": "cheat entry at 0x54A0F30"
+   },
+   {
+    "offset": "0x138",
+    "address": "0x54A0F38",
+    "name": "TINY",
+    "type": "f32",
+    "size": 4,
+    "default": 9.999999974752427e-07,
+    "description": "TR^2+TU^2 below this = no aim offset.",
+    "initialised_by": "cheat entry at 0x54A0F30"
+   },
+   {
+    "offset": "0x80",
+    "address": "0x54A0E80",
+    "name": "FPSFOV",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0261799,
+    "description": "Radians per FOV degree used while the head camera is on (x1.5 default). The cave copies the active value (FPSFOV if MODE else TPFOV) into the Wide-FOV constant at 0x54A0500 every frame.",
+    "initialised_by": "cheat entry at 0x54A0E80"
+   },
+   {
+    "offset": "0x84",
+    "address": "0x54A0E84",
+    "name": "TPFOV",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0226893,
+    "description": "Radians per FOV degree used in third person (x1.3 default, the Wide-FOV mod's scale).",
+    "initialised_by": "cheat entry at 0x54A0E80"
+   }
+  ],
+  "core_mod_entries": [
+   {
+    "address": "0x54A0E04",
+    "bytes": 16,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0E18",
+    "bytes": 20,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0E30",
+    "bytes": 12,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0E75",
+    "bytes": 1,
+    "off": "original bytes / flag off value"
+   },
+   {
+    "address": "0x54A0EA0",
+    "bytes": 96,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0F18",
+    "bytes": 8,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0F30",
+    "bytes": 12,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0E90",
+    "bytes": 16,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0E70",
+    "bytes": 1,
+    "off": "original bytes / flag off value"
+   },
+   {
+    "address": "0x54A0780",
+    "bytes": 390,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A1100",
+    "bytes": 27,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A1600",
+    "bytes": 1761,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x183F77B",
+    "bytes": 7,
+    "off": "original bytes / flag off value"
+   },
+   {
+    "address": "0x1C090E0",
+    "bytes": 6,
+    "off": "original bytes / flag off value"
+   },
+   {
+    "address": "0x1836C54",
+    "bytes": 5,
+    "off": "original bytes / flag off value"
+   },
+   {
+    "address": "0x54A0E71",
+    "bytes": 1,
+    "off": "original bytes / flag off value"
+   }
+  ],
+  "pad_toggle": {
+   "import_slot": "0x57E5B30",
+   "function_offset_in_module": "0xA30",
+   "report_ring_offset_in_module": "0x28BDC",
+   "reports": 12,
+   "report_stride": "0xE0",
+   "touchpad_mask": "0x100000",
+   "double_click_window_frames": 30
+  }
+ }
+}

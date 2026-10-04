@@ -1,0 +1,46 @@
+name: Bug report
+description: A mod does not work, crashes the game or misbehaves.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Everything in this project was tested only on **firmware 12.40 with a PS5 Pro**. Please give exact details so reports from other setups are comparable.
+  - type: input
+    id: console
+    attributes:
+      label: Console model
+      placeholder: "PS5 Pro / PS5 (CFI-...) / Slim / Digital"
+    validations: {required: true}
+  - type: input
+    id: firmware
+    attributes:
+      label: System software version
+      placeholder: "12.40"
+    validations: {required: true}
+  - type: input
+    id: game
+    attributes:
+      label: Game title id and version
+      placeholder: "CUSA03173 v01.09"
+    validations: {required: true}
+  - type: input
+    id: onionhen
+    attributes:
+      label: onionHEN build
+      placeholder: "stock vX / patched v0.0.15-screenshot"
+  - type: textarea
+    id: mods
+    attributes:
+      label: Which cheats/profile were enabled?
+      placeholder: "profile fps / list of enabled mods"
+    validations: {required: true}
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, what did you expect, and how to reproduce it?
+    validations: {required: true}
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else (crash timing, did it happen without the mods, logs)?

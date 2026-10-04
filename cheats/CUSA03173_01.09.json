@@ -1,0 +1,1064 @@
+{
+ "name": "Bloodborne: Game of the Year Edition",
+ "id": "CUSA03173",
+ "version": "01.09",
+ "process": "eboot.bin",
+ "mods": [
+  {
+   "name": "60 FPS (Lance McDonald)",
+   "type": "checkbox",
+   "enabled": true,
+   "memory": [
+    {
+     "offset": "00FBC40F",
+     "on": "eb1d",
+     "off": "7f1d",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E16",
+     "on": "eb19",
+     "off": "f645",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E18",
+     "on": "4156",
+     "off": "c820",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E1A",
+     "on": "41c746080000003f",
+     "off": "7515488d159d4f76",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E22",
+     "on": "c4c17a5e4608",
+     "off": "0331ffbe3e00",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E28",
+     "on": "415e",
+     "off": "0000",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E2A",
+     "on": "e933070000",
+     "off": "31c0e87f27",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E2F",
+     "on": "90",
+     "off": "0e",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E30",
+     "on": "90",
+     "off": "01",
+     "absolute": true
+    },
+    {
+     "offset": "013D3557",
+     "on": "c4c17a104608",
+     "off": "4885ff740bc4",
+     "absolute": true
+    },
+    {
+     "offset": "013D355D",
+     "on": "e9b6f8ffff",
+     "off": "c17a104608",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B71",
+     "on": "e933010000",
+     "off": "c745b88988",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B76",
+     "on": "90",
+     "off": "08",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B77",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CA9",
+     "on": "488d054868d403",
+     "off": "488d3d22751303",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB0",
+     "on": "488b00",
+     "off": "488d35",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB3",
+     "on": "8b8064020000",
+     "off": "c5751303488d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB9",
+     "on": "8945b8",
+     "off": "0d2576",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBC",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBD",
+     "on": "90",
+     "off": "03",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBE",
+     "on": "90",
+     "off": "ba",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBF",
+     "on": "90",
+     "off": "3b",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC0",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC1",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC2",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC3",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC4",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC5",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC6",
+     "on": "90",
+     "off": "9e",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC7",
+     "on": "90",
+     "off": "4c",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC8",
+     "on": "90",
+     "off": "3c",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC9",
+     "on": "90",
+     "off": "01",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCA",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCB",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCC",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCD",
+     "on": "90",
+     "off": "29",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCE",
+     "on": "90",
+     "off": "76",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCF",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD0",
+     "on": "90",
+     "off": "03",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD1",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD2",
+     "on": "e9a1feffff",
+     "off": "d24e3c01cc",
+     "absolute": true
+    },
+    {
+     "offset": "020367C7",
+     "on": "488d351cd2c702",
+     "off": "488d350ec5d902",
+     "absolute": true
+    },
+    {
+     "offset": "020369E8",
+     "on": "488d35b5cfc702",
+     "off": "488d35edc2d902",
+     "absolute": true
+    },
+    {
+     "offset": "021BC181",
+     "on": "488d3d70437803",
+     "off": "488d3de1f1b702",
+     "absolute": true
+    },
+    {
+     "offset": "021BC188",
+     "on": "488b3f",
+     "off": "488d15",
+     "absolute": true
+    },
+    {
+     "offset": "021BC18B",
+     "on": "c5fa598764020000",
+     "off": "2ef2b702488d0df1",
+     "absolute": true
+    },
+    {
+     "offset": "021BC193",
+     "on": "90",
+     "off": "94",
+     "absolute": true
+    },
+    {
+     "offset": "021BC194",
+     "on": "90",
+     "off": "b7",
+     "absolute": true
+    },
+    {
+     "offset": "021BC195",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "021BC196",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "021BC197",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "021BC198",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC199",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19A",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19B",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19C",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19D",
+     "on": "e96e010000",
+     "off": "e80e942f00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC308",
+     "on": "e974feffff",
+     "off": "c5fa590588",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30D",
+     "on": "90",
+     "off": "cb",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30E",
+     "on": "90",
+     "off": "b6",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30F",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02377CEA",
+     "on": "eb24",
+     "off": "7524",
+     "absolute": true
+    },
+    {
+     "offset": "02377CEC",
+     "on": "488d1d05885c03",
+     "off": "488d3d76369c02",
+     "absolute": true
+    },
+    {
+     "offset": "02377CF3",
+     "on": "488b1b",
+     "off": "488d15",
+     "absolute": true
+    },
+    {
+     "offset": "02377CF6",
+     "on": "c5fa108364020000",
+     "off": "c3369c02488d0de0",
+     "absolute": true
+    },
+    {
+     "offset": "02377CFE",
+     "on": "90",
+     "off": "34",
+     "absolute": true
+    },
+    {
+     "offset": "02377CFF",
+     "on": "90",
+     "off": "9c",
+     "absolute": true
+    },
+    {
+     "offset": "02377D00",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02377D01",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "02377D02",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "02377D03",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D04",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D05",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D06",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "02377D07",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "02377D08",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "02377D09",
+     "on": "90",
+     "off": "a3",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0A",
+     "on": "90",
+     "off": "d8",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0B",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0C",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0D",
+     "on": "90",
+     "off": "49",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0E",
+     "on": "eb42",
+     "off": "8b07",
+     "absolute": true
+    },
+    {
+     "offset": "02377D48",
+     "on": "eba2",
+     "off": "7508",
+     "absolute": true
+    },
+    {
+     "offset": "02418E3D",
+     "on": "8b8364020000",
+     "off": "488d05cc7652",
+     "absolute": true
+    },
+    {
+     "offset": "02418E43",
+     "on": "8945c8",
+     "off": "034883",
+     "absolute": true
+    },
+    {
+     "offset": "02418E46",
+     "on": "90",
+     "off": "38",
+     "absolute": true
+    },
+    {
+     "offset": "02418E47",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E48",
+     "on": "90",
+     "off": "75",
+     "absolute": true
+    },
+    {
+     "offset": "02418E49",
+     "on": "90",
+     "off": "21",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4A",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4B",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4C",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4D",
+     "on": "90",
+     "off": "18",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4E",
+     "on": "90",
+     "off": "25",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4F",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E50",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E51",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E52",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E53",
+     "on": "90",
+     "off": "15",
+     "absolute": true
+    },
+    {
+     "offset": "02418E54",
+     "on": "90",
+     "off": "65",
+     "absolute": true
+    },
+    {
+     "offset": "02418E55",
+     "on": "90",
+     "off": "25",
+     "absolute": true
+    },
+    {
+     "offset": "02418E56",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E57",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E58",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E59",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5A",
+     "on": "90",
+     "off": "0d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5B",
+     "on": "90",
+     "off": "29",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5C",
+     "on": "90",
+     "off": "24",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5D",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5E",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5F",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "02418E60",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "02418E61",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E62",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E63",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E64",
+     "on": "488d05a5765203",
+     "off": "31c0e845c70900",
+     "absolute": true
+    },
+    {
+     "offset": "0243487E",
+     "on": "41c74424188988883c",
+     "off": "41c74424188988083d",
+     "absolute": true
+    },
+    {
+     "offset": "02434887",
+     "on": "48b90000000001000000",
+     "off": "48b9000000001e000000",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC1",
+     "on": "c3",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC2",
+     "on": "90",
+     "off": "a2",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC3",
+     "on": "90",
+     "off": "ce",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC4",
+     "on": "90",
+     "off": "b3",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC5",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02715D71",
+     "on": "e881090000",
+     "off": "c5fa1025fb",
+     "absolute": true
+    },
+    {
+     "offset": "02715D76",
+     "on": "90",
+     "off": "40",
+     "absolute": true
+    },
+    {
+     "offset": "02715D77",
+     "on": "90",
+     "off": "61",
+     "absolute": true
+    },
+    {
+     "offset": "02715D78",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02FBF178",
+     "on": "4831c0c3",
+     "off": "ff25725b",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "No Motion Blur",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "026A057B",
+     "on": "eb16",
+     "off": "7416",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "No Chromatic Aberration",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "0269FAA8",
+     "on": "c783ac000000000000009090",
+     "off": "8b8590f5ffff8983ac000000",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "Skip Intro Logos",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "04D99138",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    },
+    {
+     "offset": "04D99154",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    },
+    {
+     "offset": "04D9916E",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "Wide FOV x1.3",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A0500",
+     "on": "dfdeb93c",
+     "off": "dfdeb93c",
+     "absolute": true
+    },
+    {
+     "offset": "0183AF5A",
+     "on": "a255c603",
+     "off": "faae4e03",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "DLAA threshold 0.3 (sharper anti-aliasing)",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A1340",
+     "on": "9a99993e",
+     "off": "9a99993e",
+     "absolute": true
+    },
+    {
+     "offset": "054A1300",
+     "on": "c5fa100538000000e90784dbfb",
+     "off": "c5fa100538000000e90784dbfb",
+     "absolute": true
+    },
+    {
+     "offset": "0125970F",
+     "on": "e9ec7b2404",
+     "off": "c5fa104618",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "FPS head camera (experimental)",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A0E04",
+     "on": "c00c0000000000007b142e3e0ad7a33e",
+     "off": "c00c0000000000007b142e3e0ad7a33e",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E18",
+     "on": "0000c8420000003f000000bf9a99194000001040",
+     "off": "0000c8420000003f000000bf9a99194000001040",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E30",
+     "on": "0000a03f0000803f0000003f",
+     "off": "0000a03f0000803f0000003f",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E80",
+     "on": "5077d63cdfdeb93c",
+     "off": "5077d63cdfdeb93c",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E75",
+     "on": "01",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "054A0EA0",
+     "on": "ec51b83d000061459a99993ecdcc4c3d0000803fbd3786359a99993e3333b33effffffffffffffffffffffff00000000ffffffff00000000ffffffff000000000000000000000000000000800000000000000080000000800000008000000080",
+     "off": "ec51b83d000061459a99993ecdcc4c3d0000803fbd3786359a99993e3333b33effffffffffffffffffffffff00000000ffffffff00000000ffffffff000000000000000000000000000000800000000000000080000000800000008000000080",
+     "absolute": true
+    },
+    {
+     "offset": "054A0F18",
+     "on": "0000000000000000",
+     "off": "0000000000000000",
+     "absolute": true
+    },
+    {
+     "offset": "054A0F30",
+     "on": "ec51783fb0fe7f3fbd378635",
+     "off": "ec51783fb0fe7f3fbd378635",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E90",
+     "on": "000000000ad7c33f0000000000000000",
+     "off": "000000000ad7c33f0000000000000000",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E70",
+     "on": "01",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "054A0780",
+     "on": "803dec060000000f84c0010000803ddd060000000f84b301000050515256488b05d3e049004889c648c1ee204883ee024883fe010f878f01000089c681fe000001000f8281010000488b40604889c648c1ee204883ee024883fe010f876801000089c681fe000001000f825a010000488b48484889ce48c1ee204883ee024883fe010f874101000089ce81fe000001000f823301000048813910cf79050f8526010000488b49184889ce48c1ee204883ee024883fe010f870d01000089ce81fe000001000f82ff00000048813920087a050f85f2000000488b50584889d648c1ee204883ee024883fe010f87d900000089d681fe000001000f82cb00000048813a100677050f85be000000c5fa108240030000c5fa108a48030000c4c17a105510c4c17a105d18c5fa59e3c5f259eac5da5ce5c5f259ebc5fa59f2c5d258eec5da59f4c5d259fdc5ca58f7c5f82e35490500000f8270000000c5fa108240030000c5fa108a48030000c5fa59f4c5f259fdc5ca58f7c5f259fcc5fa59d5c5c25cfac5fa11b240030000c5fa11ba48030000c5fa108220030000c5fa108a28030000c5fa59f4c5f259fdc5ca58f7c5f259fcc5fa59d5c5c25cfac5fa11b220030000c5fa11ba280300005e5a59584881c4d8030000e929ee39fc",
+     "off": "803dec060000000f84c0010000803ddd060000000f84b301000050515256488b05d3e049004889c648c1ee204883ee024883fe010f878f01000089c681fe000001000f8281010000488b40604889c648c1ee204883ee024883fe010f876801000089c681fe000001000f825a010000488b48484889ce48c1ee204883ee024883fe010f874101000089ce81fe000001000f823301000048813910cf79050f8526010000488b49184889ce48c1ee204883ee024883fe010f870d01000089ce81fe000001000f82ff00000048813920087a050f85f2000000488b50584889d648c1ee204883ee024883fe010f87d900000089d681fe000001000f82cb00000048813a100677050f85be000000c5fa108240030000c5fa108a48030000c4c17a105510c4c17a105d18c5fa59e3c5f259eac5da5ce5c5f259ebc5fa59f2c5d258eec5da59f4c5d259fdc5ca58f7c5f82e35490500000f8270000000c5fa108240030000c5fa108a48030000c5fa59f4c5f259fdc5ca58f7c5f259fcc5fa59d5c5c25cfac5fa11b240030000c5fa11ba48030000c5fa108220030000c5fa108a28030000c5fa59f4c5f259fdc5ca58f7c5f259fcc5fa59d5c5c25cfac5fa11b220030000c5fa11ba280300005e5a59584881c4d8030000e929ee39fc",
+     "absolute": true
+    },
+    {
+     "offset": "054A1100",
+     "on": "803d69fdffff000f840300000031c0c3554889e54157e9cb7f76fc",
+     "off": "803d69fdffff000f840300000031c0c3554889e54157e9cb7f76fc",
+     "absolute": true
+    },
+    {
+     "offset": "054A1600",
+     "on": "50515256803d6af8ffff000f84b9000000488b05184534004889c648c1ee204883fe080f85a100000089c681e6ff0f000081fe300a00000f858d000000488b0d4c3834004829c14881f9900900000f8576000000488d88ac81020031d2be0c0000000b114881c1e0000000ffce0f85efffffffff05fff7ffffc1ea1483e2010fb635f0f7ffff8815eaf7ffff85d20f843600000085f60f852e0000008b05d6f7ffff89c62b05d2f7ffff8935ccf7ffff83f81e0f87110000008035b1f7ffff01c705b2f7ffff000000005e5a5958500fb6059bf7ffff85c08b05a6f7ffff0f84060000008b0596f7ffff890510eeffff58803d79f7ffff000f84fd0400005051525641504151488b056bd149004889c648c1ee204883ee024883fe010f87d104000089c681fe000001000f82c3040000488b40604889c648c1ee204883ee024883fe010f87aa04000089c681fe000001000f829c040000488b48484889ce48c1ee204883ee024883fe010f878304000089ce81fe000001000f827504000048813910cf79050f85680400004989c8488b90b00300004889d648c1ee204883ee024883fe010f874904000089d681fe000001000f823b04000048813a705d73050f852e040000488b52684889d648c1ee204883ee024883fe010f871504000089d681fe000001000f820704000048813af05673050f85fa030000c5f810bae00100004c630d34f6ffffe8f803000085c00f8414000000486315f8f5ffffe82104000085c00f85980000008b05fdf5ffff85c00f840d000000ffc88905edf5ffffe90b01000041b918000000e8b603000085c00f841e00000031d2e8e403000085c00f854e00000083c20881fa000600000f82e4ffffff4181f9180000000f841c0000004181f9200000000f841a000000c70593f5ffff78000000e9b100000041b920000000e9a1ffffff41b9f8050000e996ffffff89155af5ffff44890d7bf5ffffc5f8102d77f5ffffc5d8c2f500c5f850c683e00783f8070f8410000000c5f811255af5ffffc5f8113d62f5ffffc5f810254af5ffffc5d85c2552f5ffffc5d85c355af5ffffc4e34940ee71c5f82e2d20f5ffff0f8a200000000f831a000000c4e279182d0ff5ffffc5c859f5c5c858352bf5ffffe904000000c5f828f4c5f811351af5ffffc5c858e7e908000000c5c0582539f5ffffc5fa16efc5d2582dcdf4ffffc5fa16f4c5ca5ff5c4e35921e610c4e35921e3f0c4e279182d88f4ffffc5d059e8c5d858e5c4e279182d7bf4ffffc5d059e9c5d858e5c4e279182d6ef4ffffc5d059eac5d858e5c5d85cebc4e35140ed71c5f82e2d5cf4ffff0f8a310200000f832b020000c5f828dc803d9ff4ffff000f841a020000488b83100100004889c648c1ee2048",
+     "off": "50515256803d6af8ffff000f84b9000000488b05184534004889c648c1ee204883fe080f85a100000089c681e6ff0f000081fe300a00000f858d000000488b0d4c3834004829c14881f9900900000f8576000000488d88ac81020031d2be0c0000000b114881c1e0000000ffce0f85efffffffff05fff7ffffc1ea1483e2010fb635f0f7ffff8815eaf7ffff85d20f843600000085f60f852e0000008b05d6f7ffff89c62b05d2f7ffff8935ccf7ffff83f81e0f87110000008035b1f7ffff01c705b2f7ffff000000005e5a5958500fb6059bf7ffff85c08b05a6f7ffff0f84060000008b0596f7ffff890510eeffff58803d79f7ffff000f84fd0400005051525641504151488b056bd149004889c648c1ee204883ee024883fe010f87d104000089c681fe000001000f82c3040000488b40604889c648c1ee204883ee024883fe010f87aa04000089c681fe000001000f829c040000488b48484889ce48c1ee204883ee024883fe010f878304000089ce81fe000001000f827504000048813910cf79050f85680400004989c8488b90b00300004889d648c1ee204883ee024883fe010f874904000089d681fe000001000f823b04000048813a705d73050f852e040000488b52684889d648c1ee204883ee024883fe010f871504000089d681fe000001000f820704000048813af05673050f85fa030000c5f810bae00100004c630d34f6ffffe8f803000085c00f8414000000486315f8f5ffffe82104000085c00f85980000008b05fdf5ffff85c00f840d000000ffc88905edf5ffffe90b01000041b918000000e8b603000085c00f841e00000031d2e8e403000085c00f854e00000083c20881fa000600000f82e4ffffff4181f9180000000f841c0000004181f9200000000f841a000000c70593f5ffff78000000e9b100000041b920000000e9a1ffffff41b9f8050000e996ffffff89155af5ffff44890d7bf5ffffc5f8102d77f5ffffc5d8c2f500c5f850c683e00783f8070f8410000000c5f811255af5ffffc5f8113d62f5ffffc5f810254af5ffffc5d85c2552f5ffffc5d85c355af5ffffc4e34940ee71c5f82e2d20f5ffff0f8a200000000f831a000000c4e279182d0ff5ffffc5c859f5c5c858352bf5ffffe904000000c5f828f4c5f811351af5ffffc5c858e7e908000000c5c0582539f5ffffc5fa16efc5d2582dcdf4ffffc5fa16f4c5ca5ff5c4e35921e610c4e35921e3f0c4e279182d88f4ffffc5d059e8c5d858e5c4e279182d7bf4ffffc5d059e9c5d858e5c4e279182d6ef4ffffc5d059eac5d858e5c5d85cebc4e35140ed71c5f82e2d5cf4ffff0f8a310200000f832b020000c5f828dc803d9ff4ffff000f841a020000488b83100100004889c648c1ee2048",
+     "absolute": true
+    },
+    {
+     "offset": "054A19E8",
+     "on": "83ee024883fe010f87b600000089c681fe000001000f82a8000000c5f810b320010000c5c85cf3c4e34940fe71c5f82e3d83f4ffff0f8688000000c5f82e3d79f4ffff0f837a000000c5c251ffc5c0c6ff00c5c85ef7c4e34940fa71c5f82e3d5cf4ffff0f8259000000c4e34940e871c5d25eefc4e34940e171c5da5ee7c5d25c2daaf4ffffc5d2592d42f4ffffc5d2582d9af4ffffc5fa112d92f4ffffc5da5c258ef4ffffc5da592522f4ffffc5da58257ef4ffffc5fa112576f4ffffe952000000c5f8103d6df4ffffc4e34140fa71c5f82e3d73f4ffff0f8a360000000f8330000000c5fa102d43f4ffffc5d2592d53f4ffffc5fa112d33f4ffffc5fa10252ff4ffffc5da59253bf4ffffc5fa11251ff4ffffc5f811151bf4ffffc5fa102d0bf4ffffc5d259edc5fa102503f4ffffc5da59e4c5d258ecc5f82e2d0ff4ffff0f86c4000000c4e279182de0f3ffffc5d059e8c4e2791825d7f3ffffc5d859e1c5d058ecc5d058f2c4e34940fe71c5c251ffc5c0c6ff00c5c85ef7c5c859fec5c012efc5c258edc5f82e2d3cf3ffff0f8675000000c5d251edc5fa103d26f3ffffc5c25efdc5c0c6ff00c5c859ffc4e37904e7c2c5d854252bf3ffffc5d8572533f3ffffc4e37904c755c5f859c6c5f8570531f3ffffc4e37921c510c5f85405f3f2ffffc5c85435ebf2ffffc5f8296310c5f8294320c5f8297330c5f8284310c5f8284b20c5f8285330415941585e5a5958c5f8295b40e9545039fc4181f9000700000f872d0000004b8b0c084889ce48c1ee204883ee024883fe010f871400000089ce81fe000001000f8206000000b801000000c331c0c381fa000700000f8790000000488b0411a80f0f85840000004889c648c1ee204883ee024883fe010f876f00000089c681fe000001000f826100000048633580f1ffff4801f0c5fa10600cc4e35921601c10c4e35921602c20c5d85cefc5fa16f5c5f82e3576f1ffff0f862e000000c5f82e356cf1ffff0f8320000000c5d059f5c5c812eec5ca58f5c5f82e3556f1ffff0f8306000000b801000000c331c0c3",
+     "off": "83ee024883fe010f87b600000089c681fe000001000f82a8000000c5f810b320010000c5c85cf3c4e34940fe71c5f82e3d83f4ffff0f8688000000c5f82e3d79f4ffff0f837a000000c5c251ffc5c0c6ff00c5c85ef7c4e34940fa71c5f82e3d5cf4ffff0f8259000000c4e34940e871c5d25eefc4e34940e171c5da5ee7c5d25c2daaf4ffffc5d2592d42f4ffffc5d2582d9af4ffffc5fa112d92f4ffffc5da5c258ef4ffffc5da592522f4ffffc5da58257ef4ffffc5fa112576f4ffffe952000000c5f8103d6df4ffffc4e34140fa71c5f82e3d73f4ffff0f8a360000000f8330000000c5fa102d43f4ffffc5d2592d53f4ffffc5fa112d33f4ffffc5fa10252ff4ffffc5da59253bf4ffffc5fa11251ff4ffffc5f811151bf4ffffc5fa102d0bf4ffffc5d259edc5fa102503f4ffffc5da59e4c5d258ecc5f82e2d0ff4ffff0f86c4000000c4e279182de0f3ffffc5d059e8c4e2791825d7f3ffffc5d859e1c5d058ecc5d058f2c4e34940fe71c5c251ffc5c0c6ff00c5c85ef7c5c859fec5c012efc5c258edc5f82e2d3cf3ffff0f8675000000c5d251edc5fa103d26f3ffffc5c25efdc5c0c6ff00c5c859ffc4e37904e7c2c5d854252bf3ffffc5d8572533f3ffffc4e37904c755c5f859c6c5f8570531f3ffffc4e37921c510c5f85405f3f2ffffc5c85435ebf2ffffc5f8296310c5f8294320c5f8297330c5f8284310c5f8284b20c5f8285330415941585e5a5958c5f8295b40e9545039fc4181f9000700000f872d0000004b8b0c084889ce48c1ee204883ee024883fe010f871400000089ce81fe000001000f8206000000b801000000c331c0c381fa000700000f8790000000488b0411a80f0f85840000004889c648c1ee204883ee024883fe010f876f00000089c681fe000001000f826100000048633580f1ffff4801f0c5fa10600cc4e35921601c10c4e35921602c20c5d85cefc5fa16f5c5f82e3576f1ffff0f862e000000c5f82e356cf1ffff0f8320000000c5d059f5c5c812eec5ca58f5c5f82e3556f1ffff0f8306000000b801000000c331c0c3",
+     "absolute": true
+    },
+    {
+     "offset": "0183F77B",
+     "on": "e90010c6039090",
+     "off": "4881c4d8030000",
+     "absolute": true
+    },
+    {
+     "offset": "01C090E0",
+     "on": "e91b80890390",
+     "off": "554889e54157",
+     "absolute": true
+    },
+    {
+     "offset": "01836C54",
+     "on": "e9a7a9c603",
+     "off": "c5f8295b40",
+     "absolute": true
+    },
+    {
+     "offset": "054A0E71",
+     "on": "01",
+     "off": "00",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "FPS head camera: body faces the view (needs head camera)",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A0E73",
+     "on": "01",
+     "off": "00",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "FPS head camera: aim at the lock-on target (needs head camera)",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A0E72",
+     "on": "01",
+     "off": "00",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "Anisotropic filtering 16x",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "054A0400",
+     "on": "49bac8069405000000004d8b124d85d2746f4d8b92500200004d85d2746341c782240500001000000041c7825c0500001000000041c782940500001000000041c782cc0500001000000041c782040600001000000041c7823c0600001000000041c782740600001000000041c782ac0600001000000041c7821c07000010000000e96a33b1fb",
+     "off": "49bac8069405000000004d8b124d85d2746f4d8b92500200004d85d2746341c782240500001000000041c7825c0500001000000041c782940500001000000041c782cc0500001000000041c782040600001000000041c7823c0600001000000041c782740600001000000041c782ac0600001000000041c7821c07000010000000e96a33b1fb",
+     "absolute": true
+    },
+    {
+     "offset": "025D803D",
+     "on": "e8be83ec02",
+     "off": "e8aeb79dfe",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "No depth of field",
+   "type": "checkbox",
+   "enabled": false,
+   "memory": [
+    {
+     "offset": "025D7A8B",
+     "on": "31c090",
+     "off": "0f95c0",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "DLC Save Requirement Unlock",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "023B67B3",
+     "on": "49C7460801010101",
+     "off": "49c7460800000000",
+     "absolute": true
+    }
+   ],
+   "enabled": false
+  }
+ ]
+}

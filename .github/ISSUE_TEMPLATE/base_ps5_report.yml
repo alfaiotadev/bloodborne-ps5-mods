@@ -1,0 +1,31 @@
+name: Test report from another console or firmware
+description: Tell us how the mods behave on a base PS5, Slim/Digital, or another firmware version.
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The mods were only ever tested on a **PS5 Pro with firmware 12.40**. Reports from other hardware (especially a base PS5, where the 60 FPS patch and GPU-heavy options may behave differently) are very welcome - positive and negative.
+  - type: input
+    id: console
+    attributes: {label: Console model, placeholder: "PS5 (CFI-1xxx) / Slim / Digital / Pro"}
+    validations: {required: true}
+  - type: input
+    id: firmware
+    attributes: {label: System software version}
+    validations: {required: true}
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall result
+      options: ["Works fine", "Works with problems", "Crashes", "Did not try everything"]
+    validations: {required: true}
+  - type: textarea
+    id: fps
+    attributes:
+      label: Performance
+      description: Frame rate in different places (Hunter's Dream, Yharnam streets, big fights), tearing, slowdowns, whether 60 FPS holds.
+  - type: textarea
+    id: mods
+    attributes:
+      label: Mods that were enabled and what you observed for each

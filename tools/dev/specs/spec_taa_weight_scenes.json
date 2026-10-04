@@ -1,0 +1,120 @@
+{
+ "note": "Contains game-session heap address(es) 0x22a84863c, 0x22a848648 that are only valid for one run of the game: re-resolve them (e.g. with yebis_probe.py / find_vtable_instances.py) or use vt:/vtall: addresses before running.",
+ "hold": 5,
+ "shot_delay": 3.5,
+ "toast": false,
+ "warmup": 1,
+ "scene_wait": 5,
+ "scenes": [
+  "sickroom_fences_aa",
+  "bridge_end_cobblestone"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "sequence": [
+  "TAA off",
+  "TAA on w 0.05 (game)",
+  "TAA on w 0.02",
+  "TAA on w 0.3",
+  "TAA on w 0.6",
+  "TAA off"
+ ],
+ "states": {
+  "TAA off": [
+   {
+    "addr": "0x22a84863c",
+    "fmt": "B",
+    "val": 0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   }
+  ],
+  "TAA on w 0.05 (game)": [
+   {
+    "addr": "0x22a84863c",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848648",
+    "fmt": "f",
+    "val": 0.05,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   }
+  ],
+  "TAA on w 0.02": [
+   {
+    "addr": "0x22a84863c",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848648",
+    "fmt": "f",
+    "val": 0.02,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   }
+  ],
+  "TAA on w 0.3": [
+   {
+    "addr": "0x22a84863c",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848648",
+    "fmt": "f",
+    "val": 0.3,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   }
+  ],
+  "TAA on w 0.6": [
+   {
+    "addr": "0x22a84863c",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848648",
+    "fmt": "f",
+    "val": 0.6,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   }
+  ]
+ }
+}

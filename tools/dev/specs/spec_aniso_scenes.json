@@ -1,0 +1,121 @@
+{
+ "note": "Contains game-session heap address(es) 0x228853504, 0x22885353c, 0x228853574, 0x2288535ac, 0x2288535e4, 0x22885361c, 0x228853654, 0x22885368c, 0x2288536fc that are only valid for one run of the game: re-resolve them (e.g. with yebis_probe.py / find_vtable_instances.py) or use vt:/vtall: addresses before running.",
+ "hold": 4,
+ "sequence": [
+  "aniso 16",
+  "aniso 1 (no aniso)",
+  "aniso 16",
+  "aniso 1 (no aniso)"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "states": {
+  "aniso 16": [
+   {
+    "addr": "0x228853504",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x22885353c",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x228853574",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x2288535ac",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x2288535e4",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x22885361c",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x228853654",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x22885368c",
+    "fmt": "I",
+    "val": 16
+   },
+   {
+    "addr": "0x2288536fc",
+    "fmt": "I",
+    "val": 16
+   }
+  ],
+  "aniso 1 (no aniso)": [
+   {
+    "addr": "0x228853504",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x22885353c",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x228853574",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x2288535ac",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x2288535e4",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x22885361c",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x228853654",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x22885368c",
+    "fmt": "I",
+    "val": 1
+   },
+   {
+    "addr": "0x2288536fc",
+    "fmt": "I",
+    "val": 1
+   }
+  ]
+ },
+ "shot_delay": 2,
+ "toast": false,
+ "warmup": 1,
+ "scene_wait": 5,
+ "scenes": [
+  "bridge_end_cobblestone",
+  "under_bridge_brick_wall"
+ ]
+}

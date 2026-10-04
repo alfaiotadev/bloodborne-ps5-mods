@@ -1,0 +1,362 @@
+{
+ "hold": 4,
+ "shot_delay": 2,
+ "toast": false,
+ "warmup": 1,
+ "scene_wait": 5,
+ "scenes": [
+  "sickroom_fences_aa",
+  "bridge_end_cobblestone",
+  "under_bridge_brick_wall"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "sequence": [
+  "DLAA game (thr 0.1)",
+  "DLAA thr 0.2",
+  "DLAA thr 0.3",
+  "DLAA thr 0.45",
+  "DLAA thr 0.6",
+  "DLAA thr 0.8",
+  "DLAA thr 1.0",
+  "DLAA thr 0.3 lam 1.5",
+  "DLAA thr 0.3 lam 3.5",
+  "DLAA thr 0.3 eps 0.1",
+  "DLAA thr 0.3 eps 0.6",
+  "DLAA game (thr 0.1)"
+ ],
+ "states": {
+  "DLAA game (thr 0.1)": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 0
+   }
+  ],
+  "DLAA thr 0.2": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.2
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.3": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.45": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.45
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.6": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.6
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.8": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.8
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 1.0": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 1.0
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.3 lam 1.5": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 1.5
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.3 lam 3.5": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 3.5
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.3 eps 0.1": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.1
+   }
+  ],
+  "DLAA thr 0.3 eps 0.6": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.6
+   }
+  ]
+ }
+}

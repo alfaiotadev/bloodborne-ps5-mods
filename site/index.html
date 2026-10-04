@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloodborne PS5 mods - 60 FPS, sharper image, experimental first-person camera</title>
+<meta name="description" content="Image-quality and gameplay mods for Bloodborne on a jailbroken PS5 Pro, applied at runtime with the onionHEN cheat engine. Tested only on a PS5 Pro with firmware 12.40. Use at your own risk.">
+<meta name="theme-color" content="#0e1014">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the content</a>
+
+<div class="topnote" role="note">Tested only on a PS5 Pro, firmware 12.40. Base PS5 and other firmware: unknown. Use at your own risk. You must own the game. <a href="#disclaimer">Read the full notice</a>.</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Bloodborne PS5 mods</a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a href="compare.html">Compare</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#docs">Docs</a></li>
+        <li><a href="#credits">Credits</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Bloodborne &middot; PS5 Pro &middot; onionHEN</p>
+      <h1>Bloodborne on PS5, tuned</h1>
+      <p class="lead">Image-quality and gameplay mods for Bloodborne on a jailbroken PS5 Pro: 60 FPS, no motion blur, no chromatic aberration, wide field of view, slightly sharper anti-aliasing, and an experimental first-person head camera. They are applied to the running game by the onionHEN cheat engine, so your game files are not rewritten.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#install">Install in 3 steps</a>
+        <a class="btn secondary" href="compare.html">Compare screenshots</a>
+        <a class="btn secondary" href="https://github.com/alfaiotadev/bloodborne-ps5-mods">Source on GitHub</a>
+      </div>
+      <ul class="hero-facts">
+        <li>Game: Bloodborne GOTY, CUSA03173 v01.09</li>
+        <li>Only tested setup: PS5 Pro, firmware 12.40</li>
+        <li>License: GPL-3.0</li>
+      </ul>
+    </div>
+    <figure class="hero-shot">
+      <img src="assets/cmp/fov_b_x13.webp" width="1280" height="720" alt="Bloodborne on the stone bridge in Yharnam with the wide field of view: balustrades, lamp posts and a burning sunset sky fill the frame, the hunter stands on the stairs." fetchpriority="high" decoding="async">
+      <figcaption>Wide FOV x1.3 on a Yharnam bridge. Full frame, scaled to 1280x720.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section class="disclaimer" id="disclaimer" aria-labelledby="disclaimer-title">
+  <div class="wrap">
+    <div class="box">
+      <h2 id="disclaimer-title"><span class="tri" aria-hidden="true"></span>Read this first</h2>
+      <ul>
+        <li><strong>All testing was done on firmware 12.40 with a PS5 Pro.</strong> Nothing else was tested.</li>
+        <li><strong>Behaviour and performance on a base PS5 (including Slim and Digital) and on other firmware are unknown.</strong> The 60 FPS patch in particular may behave differently there.</li>
+        <li><strong>Use at your own risk.</strong> Mods can crash the game, and a crash during an autosave can damage a save. Back up your save data first and play offline.</li>
+        <li><strong>You must own the game</strong> and run this only on a console you own. This project ships no game files and no game assets.</li>
+      </ul>
+      <p>Details: <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/compatibility.md">compatibility</a> and <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/known-issues.md">known issues</a>. If you try it on a base PS5 or another firmware, please report what happened.</p>
+    </div>
+  </div>
+</section>
+
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <h2 id="features-title">What is in the box</h2>
+    <p class="section-intro">Twelve toggles in one cheat file. Four are on by default, the rest are opt-in, and every one can be switched on or off in the onionHEN cheat menu. Several effects are subtle on purpose, and the comparison tool shows them honestly, including the cases where we could not see a difference.</p>
+
+    <div class="chips" role="group" aria-label="Filter the mods">
+      <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" class="chip" data-filter="default" aria-pressed="false">On by default</button>
+      <button type="button" class="chip" data-filter="optional" aria-pressed="false">Optional</button>
+      <button type="button" class="chip" data-filter="experimental" aria-pressed="false">Experimental</button>
+    </div>
+    <p class="visually-hidden" id="filter-status" role="status" aria-live="polite"></p>
+
+    <ul class="cards">
+      <li class="card" data-group="default">
+        <div class="badges"><span class="badge on">Default on</span></div>
+        <h3>60 FPS</h3>
+        <p>Unlocks 60 FPS by patching the frame-rate cap, the simulation time step and related constants. Based on Lance McDonald's Bloodborne 1.09 60 FPS patch, applied to the running game instead of rewriting <code>eboot.bin</code>.</p>
+        <a class="more" href="#credits">Credit: Lance McDonald</a>
+      </li>
+      <li class="card" data-group="default">
+        <div class="badges"><span class="badge on">Default on</span></div>
+        <h3>No motion blur</h3>
+        <p>Turns the motion-blur pass off for a cleaner image while the camera or the world moves.</p>
+      </li>
+      <li class="card" data-group="default">
+        <div class="badges"><span class="badge on">Default on</span></div>
+        <h3>No chromatic aberration</h3>
+        <p>Removes the colour fringing toward the screen edges.</p>
+      </li>
+      <li class="card" data-group="default">
+        <div class="badges"><span class="badge on">Default on</span></div>
+        <h3>Skip intro logos</h3>
+        <p>Blanks the start-up logo videos so the game reaches the menu sooner.</p>
+      </li>
+      <li class="card" data-group="optional">
+        <div class="badges"><span class="badge off">Default off</span></div>
+        <h3>Wide FOV x1.3</h3>
+        <p>Raises the vertical field of view from 43 to about 56 degrees (about 87 degrees horizontal at 16:9). The multiplier can be changed when you build the cheat file.</p>
+        <a class="more" href="compare.html#set=fov&amp;scene=fov-a">Compare normal and wide</a>
+      </li>
+      <li class="card" data-group="optional">
+        <div class="badges"><span class="badge off">Default off</span></div>
+        <h3>DLAA threshold 0.3</h3>
+        <p>The game already runs its own DLAA anti-aliasing pass. This raises its edge threshold from 0.1 to 0.3 for a slightly crisper image while keeping anti-aliasing on. Subtle by design.</p>
+        <a class="more" href="compare.html#set=aa&amp;scene=aa-fence">Compare anti-aliasing</a>
+      </li>
+      <li class="card" data-group="optional">
+        <div class="badges"><span class="badge off">Default off</span></div>
+        <h3>Anisotropic filtering 16x</h3>
+        <p>Sets the engine's texture sampler to 16x anisotropy. Honest note: in our Yharnam test scenes we could not see or measure a difference, so treat it as harmless but unproven.</p>
+        <a class="more" href="compare.html#set=aniso&amp;scene=aniso-steps">Check it yourself</a>
+      </li>
+      <li class="card" data-group="optional">
+        <div class="badges"><span class="badge off">Default off</span></div>
+        <h3>No depth of field</h3>
+        <p>Turns the depth-of-field blur off, cutscenes included. The effect is small and mostly visible in far, foggy views such as the Hunter's Dream garden.</p>
+        <a class="more" href="compare.html#set=dof&amp;scene=dof-fence">Compare depth of field</a>
+      </li>
+      <li class="card" data-group="optional experimental">
+        <div class="badges"><span class="badge off">Default off</span><span class="badge exp">Experimental</span></div>
+        <h3>FPS head camera</h3>
+        <p>A first-person camera attached to the character's head bone. The game's own camera logic keeps running, camera collision pull-in is disabled, and it falls back to the normal camera if its safety checks fail. Double-click the touchpad to switch it on and off in game; the field of view follows the camera mode. Toggle it off and on to reset it.</p>
+        <a class="more" href="compare.html#set=cam&amp;scene=cam-proto">See an early prototype</a>
+      </li>
+      <li class="card" data-group="optional experimental">
+        <div class="badges"><span class="badge off">Default off</span><span class="badge exp">Experimental</span></div>
+        <h3>Head camera: body faces the view</h3>
+        <p>Rotates the displayed body to follow the camera direction instead of the movement direction. Active only while the head camera is on (third person keeps the normal body); included in the fps profile. Known side effect: the coat and hood cloth disappears while it is on.</p>
+      </li>
+      <li class="card" data-group="optional experimental">
+        <div class="badges"><span class="badge off">Default off</span><span class="badge exp">Experimental</span></div>
+        <h3>Head camera: aim at lock-on target</h3>
+        <p>Keeps the first-person view pointed at the locked-on enemy. Needs the head camera. A first iteration: close-range strafing can still make the view twitch.</p>
+      </li>
+      <li class="card" data-group="optional">
+        <div class="badges"><span class="badge off">Default off</span></div>
+        <h3>DLC save requirement unlock</h3>
+        <p>Sets the DLC-ownership flags so that saves which require the DLC can be loaded. Use it only with content you own.</p>
+      </li>
+    </ul>
+    <p class="legend-note"><span class="badge on">Default on</span> and <span class="badge off">Default off</span> describe the shipped cheat file. Ready-made profiles (default, quality, fps) in the repository only differ in which entries are enabled. Full descriptions: <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/features.md">feature reference</a>.</p>
+  </div>
+</section>
+
+<section id="install" aria-labelledby="install-title">
+  <div class="wrap">
+    <h2 id="install-title">Install in 3 steps</h2>
+    <p class="section-intro">Short version for a console that is already set up. The full guide has the requirements, profiles, troubleshooting and how to uninstall.</p>
+    <ol class="steps">
+      <li>
+        <h3>Check the setup</h3>
+        <p>A jailbroken PS5 on firmware 12.40 that can run payloads, with the patched onionHEN from the repository loaded (required: it applies the cheats at launch and maps the code caves), and Bloodborne Game of the Year Edition, <code>CUSA03173</code> version 01.09. Jailbreaking itself is out of scope here.</p>
+        <p>Do not skip the <a href="#disclaimer">notice above</a>, and back up your save data.</p>
+      </li>
+      <li>
+        <h3>Copy the cheat file</h3>
+        <p>Copy <code>cheats/CUSA03173_01.09.json</code> from the repository to <code>/data/OnionHEN/cheats/CUSA03173_01.09.json</code> on the console, for example over FTP. The file name must match exactly.</p>
+        <p>Prefer a preset? Copy one of the profiles in <code>cheats/profiles/</code> under that same name instead.</p>
+      </li>
+      <li>
+        <h3>Start the game and toggle</h3>
+        <p>Start Bloodborne. The cheats marked enabled are applied at launch. Open the onionHEN cheat menu to switch the optional mods on or off, and switch the FPS head camera on or off with a double-click of the touchpad.</p>
+        <p>If the game crashes at launch, disable mods one by one, starting with the optional ones.</p>
+      </li>
+    </ol>
+    <p style="margin-top:1.2rem"><a class="btn secondary small" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/install.md">Full install guide</a>
+      <a class="btn secondary small" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/known-issues.md">Known issues</a></p>
+  </div>
+</section>
+
+<section id="compare" aria-labelledby="compare-title">
+  <div class="wrap">
+    <h2 id="compare-title">Compare it yourself</h2>
+    <p class="section-intro">A small, dependency-free comparison tool: slider, blink A/B, difference view, strips and pixel zoom. It uses 1:1 crops of about 100 KB each and loads only the two images you are looking at, so it stays light on a phone. Nothing is loaded from other sites.</p>
+    <ul class="tiles">
+      <li><a class="tile" href="compare.html#set=aa&amp;scene=aa-fence"><strong>Anti-aliasing</strong><span>Game default, DLAA threshold 0.3, plain FXAA and AA off on a fence and carriage wheel.</span></a></li>
+      <li><a class="tile" href="compare.html#set=fov&amp;scene=fov-a&amp;mode=blink"><strong>Wide FOV</strong><span>Normal against x1.3, with a rejected x1.6 for reference.</span></a></li>
+      <li><a class="tile" href="compare.html#set=dof&amp;scene=dof-fence"><strong>Depth of field</strong><span>A small visible gain in the foggy garden, and no difference in Yharnam.</span></a></li>
+      <li><a class="tile" href="compare.html#set=aniso&amp;scene=aniso-steps&amp;mode=diff"><strong>Anisotropic filtering</strong><span>An honest negative result: try the difference view yourself.</span></a></li>
+    </ul>
+    <p style="margin-top:1.2rem"><a class="btn" href="compare.html">Open the comparison tool</a></p>
+  </div>
+</section>
+
+<section id="gallery" aria-labelledby="gallery-title">
+  <div class="wrap">
+    <h2 id="gallery-title">Gallery</h2>
+    <p class="section-intro">Screenshots from a PS5 Pro. The head camera is experimental and still has rough edges, see the known issues.</p>
+    <ul class="gallery">
+      <li>
+        <figure>
+          <video controls muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/media/fps-ladder-jump-poster.webp" aria-label="Clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge and jumping down, ending on the death screen">
+            <source src="assets/media/fps-ladder-jump.webm" type="video/webm">
+            <img src="assets/media/fps-ladder-jump.webp" width="640" height="360" alt="Animated clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge and jumping down, ending on the death screen">
+          </video>
+          <figcaption><strong>FPS head camera: the jump.</strong> Recorded on a PS5 Pro with the <code>fps</code> profile: head bobbing, the body turned to the view, and a drop from the ladder ending (as it should) on the death screen. 12 seconds, no sound.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <video controls muted loop playsinline preload="none" width="960" height="540" poster="assets/media/fps-sickroom-run-poster.webp" aria-label="Clip of the FPS head camera: starting in the sickroom, looking at the weapons in both hands, running past a beast and out into Yharnam, then looking back while backing down the stairs, ending on the death screen">
+            <source src="assets/media/fps-sickroom-run.webm" type="video/webm">
+            <img src="assets/media/fps-sickroom-run-poster.webp" width="960" height="540" alt="First-person view in the sickroom with a pistol and a wrapped weapon in the hands; the video is not supported by this browser">
+          </video>
+          <figcaption><strong>FPS head camera: the sickroom run.</strong> From the sickroom, past a beast and out into Yharnam; the view looks back while the hunter backs down the stairs and ends, unplanned, on the death screen. 35 seconds, no sound.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <img src="assets/gallery/headcam.webp" width="1280" height="720" loading="lazy" decoding="async" alt="First-person head camera view looking down at wet cobblestones, with a pistol in the left hand and a wrapped weapon handle in the right.">
+          <figcaption><strong>FPS head camera (experimental).</strong> The view from the character's head, with both weapons in hand.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <picture>
+            <source media="(prefers-reduced-motion: reduce)" srcset="assets/cmp/cam_fps.webp">
+            <img src="assets/gallery/camera_toggle.webp" width="960" height="540" loading="lazy" decoding="async" alt="Animation that switches between the normal third-person camera behind the hunter and the first-person camera on a stone bridge.">
+          </picture>
+          <figcaption><strong>Camera toggle (early prototype).</strong> Normal chase camera and first-person view from the same spot. The current build follows the head bone instead.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <img src="assets/cmp/fov_a_x13.webp" width="1280" height="720" loading="lazy" decoding="async" alt="Stone bridge stairs with the wide field of view: balustrades and lamp posts spread toward the screen edges under an orange sky.">
+          <figcaption><strong>Wide FOV x1.3.</strong> More of the scene fits on screen. See it side by side in the <a href="compare.html#set=fov&amp;scene=fov-a">comparison tool</a>.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <img src="assets/cmp/aa_fence_thr03.webp" width="960" height="540" loading="lazy" decoding="async" alt="Close-up crop of a wrought-iron fence with sharp spike tips, a carriage and a wagon wheel, rendered with the DLAA threshold raised to 0.3.">
+          <figcaption><strong>DLAA threshold 0.3.</strong> A 1:1 crop of the game's native 1080p image. The difference to the default is subtle, so the tool lets you blink and zoom.</figcaption>
+        </figure>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section id="docs" aria-labelledby="docs-title">
+  <div class="wrap">
+    <h2 id="docs-title">Documentation</h2>
+    <p class="section-intro">Everything lives in the repository. These links open the files on GitHub.</p>
+    <ul class="doc-links">
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/README.md"><strong>README</strong><span>Overview of the repository.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/install.md"><strong>Install guide</strong><span>Requirements, the three steps, profiles, uninstalling, troubleshooting.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/features.md"><strong>Feature reference</strong><span>How every mod works and what was measured.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/known-issues.md"><strong>Known issues</strong><span>Limits, crashes to avoid, head camera rough edges.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/compatibility.md"><strong>Compatibility</strong><span>The one tested setup and what is unknown.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/research/README.md"><strong>Research notes</strong><span>Reverse-engineering notes, hooks and code caves.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/CREDITS.md"><strong>Credits</strong><span>The full list of people and projects this builds on.</span></a></li>
+      <li><a class="tile" href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/AGENTS.md"><strong>Agent notes</strong><span>Guidance for AI coding agents and contributors.</span></a></li>
+    </ul>
+  </div>
+</section>
+
+<section id="credits" aria-labelledby="credits-title">
+  <div class="wrap">
+    <h2 id="credits-title">Credits</h2>
+    <p class="section-intro">This project stands on the shoulders of the PS5 homebrew and reverse-engineering community. If an attribution is missing or wrong, please open an issue or a pull request.</p>
+    <div class="credits-grid">
+      <div class="pull">
+        <h3>Lance McDonald: the 60 FPS patch</h3>
+        <p>The <strong>60 FPS</strong> mod is based on the work of <strong>Lance McDonald</strong>, who reverse-engineered and published the Bloodborne 1.09 60 FPS patch. The list of memory locations and byte values behind the 60 FPS cheat entry was derived from his patch and translated into an onionHEN cheat that is applied to the running game. All credit for finding which instructions control the frame-rate cap, the simulation time step and the related constants belongs to him.</p>
+        <p>This repository does not contain his executables. Please support the original author.</p>
+      </div>
+      <div>
+        <ul class="credit-list">
+          <li><strong><a href="https://github.com/illusionyy/PS4-PS5-Game-Patch">PS4-PS5-Game-Patch</a></strong> and <strong><a href="https://github.com/illusionyy/libhijacker-game-patch">libhijacker-game-patch</a></strong> by illusionyy and contributors: the community patch lists the motion-blur, chromatic-aberration, intro-skip, DLC and 60 FPS write lists were checked against.</li>
+          <li><strong><a href="https://github.com/aydencharles/onionHEN">onionHEN</a></strong> by aydencharles and contributors: the cheat engine, Toolbox and in-game overlay these mods run on.</li>
+          <li><strong><a href="https://github.com/LightningMods/etaHEN">etaHEN</a></strong> by LightningMods and contributors: the source base of the onionHEN tree.</li>
+          <li><strong><a href="https://github.com/GoldHEN/GoldHEN">GoldHEN</a></strong> by SiSTR0 and contributors: the PS4 all-in-one HEN that onionHEN takes after.</li>
+          <li><strong><a href="https://github.com/EchoStretch/kstuff-lite">kstuff-lite</a></strong> by EchoStretch, sleirsgoevy and contributors: kernel patches used in the payload chain.</li>
+          <li><strong><a href="https://github.com/ps5-payload-dev/sdk">PS5 Payload SDK</a></strong> and <strong><a href="https://github.com/ps5-payload-dev/elfldr">elfldr</a></strong> by the ps5-payload-dev team: the toolchain and the first-hop ELF loader.</li>
+          <li><strong><a href="https://github.com/astrelsky/libhijacker">libhijacker</a></strong> by astrelsky and <strong><a href="https://github.com/buzzer-re/NineS">NineS</a></strong> by buzzer-re: process hijacking and ShellUI injection used inside onionHEN.</li>
+          <li><strong><a href="https://github.com/TeeKay87/HEN-Cheats-Collection">HEN-Cheats-Collection</a></strong> by TeeKay87 and PHU Games Tools by ArkSama: the community cheat format and the FPS counter onionHEN references.</li>
+          <li><strong><a href="https://github.com/itsPLK/ps5-webkit-autoloader">PS5 WebKit Autoloader</a></strong> and PKG-Manager by itsPLK: the autoloader and package installer used on the development console.</li>
+          <li><strong><a href="https://github.com/drakmor/ftpsrv">ftpsrv</a></strong>, ShadowMount+ and <strong><a href="https://github.com/drakmor/nanoDNS">nanoDNS</a></strong> by drakmor and contributors.</li>
+          <li>cJSON (Dave Gamble), miniz (Rich Geldreich) and the 7-Zip LZMA SDK (Igor Pavlov), embedded in onionHEN. Capstone, NumPy, Pillow and imagecodecs (Christoph Gohlke), ImageMagick and more are listed in the full credits.</li>
+          <li><strong>Claude</strong> (Anthropic), through Claude Code, helped with the analysis, tools and documentation. All findings were verified on real hardware.</li>
+        </ul>
+        <p class="small" style="margin-top:1rem">Complete list, with every project and library: <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/CREDITS.md">CREDITS.md</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="legal"><em>Bloodborne</em> is a trademark of Sony Interactive Entertainment and FromSoftware. This project is <strong>not affiliated with or endorsed by Sony Interactive Entertainment, FromSoftware</strong>, onionHEN, Lance McDonald or any other party named on this site. It contains no game assets, no game binaries and no memory dumps; the screenshots are small crops of the running game, shown for comparison. You must own a legitimate copy of the game and use the mods only on hardware you own. Use at your own risk.</p>
+    <p>License: <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/LICENSE">GPL-3.0</a> &middot; <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods">Source on GitHub</a> &middot; <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/issues">Report an issue</a></p>
+    <p class="small">This is a static page: no cookies, no analytics, no third-party requests.</p>
+  </div>
+</footer>
+</body>
+</html>

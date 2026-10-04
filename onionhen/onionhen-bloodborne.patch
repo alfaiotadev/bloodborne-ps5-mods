@@ -1,0 +1,1670 @@
+diff --git a/source/daemon/include/daemon_ops.hpp b/source/daemon/include/daemon_ops.hpp
+index 0fbb8ce..b8685ef 100644
+--- a/source/daemon/include/daemon_ops.hpp
++++ b/source/daemon/include/daemon_ops.hpp
+@@ -51,6 +51,8 @@ bool restore_automatic_fan();
+ void *fan_maintenance_thread(void *args) noexcept;
+ /** Render/skip-hook FPS sampler: DMAP counters, publishes the FPS sample. */
+ void *fps_sampler_thread(void *args) noexcept;
++/* Registers the overlay probe/game-memory decorator on FPS publishes. */
++void daemon_probes_init() noexcept;
+ /** V-sync FPS sampler: feeds the FPS sampler when render counters are invalid. */
+ void *vsync_fps_sampler_thread(void *args) noexcept;
+ /** Live console-language poll: pushes language changes to util over IPC. */
+diff --git a/source/daemon/include/debug_probes.hpp b/source/daemon/include/debug_probes.hpp
+new file mode 100644
+index 0000000..c03b695
+--- /dev/null
++++ b/source/daemon/include/debug_probes.hpp
+@@ -0,0 +1,219 @@
++/* Copyright (C) 2026 OnionHEN / LightningMods
++ *
++ * Debug probes: tiny text config that tells the daemon which game-memory
++ * values to show in the overlay DBG group. Pure logic (no SDK dependencies)
++ * so it can be unit-tested on the host.
++ *
++ * File format (one probe per line, '#' starts a comment):
++ *
++ *   <title_id> <label> <base_hex> <deref 0|1> <name:size:offset_hex>...
++ *
++ *   CUSA03173 AA  5865ED0 1 FX:1:BBC TA:1:B8C
++ *   CUSA03173 RES 55289F8 0 W:4:0 H:4:4
++ *
++ * deref=1 reads an 8-byte pointer at base first and applies the field offsets
++ * to the pointed-to object; deref=0 applies them to base directly.
++ * size is 1, 2, 4 or 8. Values are printed as unsigned decimals.
++ */
++#pragma once
++
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++
++namespace onion::daemon::probes {
++
++constexpr int kMaxProbes = 12;
++constexpr int kMaxFields = 6;
++constexpr size_t kDbgTextCap = 72; /* OnionFpsSample::dbg */
++
++struct Field {
++  char name[8];
++  uint8_t size;
++  uint32_t off;
++};
++
++struct Probe {
++  char title[16];
++  char label[8];
++  uint64_t base;
++  bool deref;
++  int nfields;
++  Field fields[kMaxFields];
++};
++
++/** Reads `n` bytes at `va` from the target. Returns true on success. */
++using ReadFn = bool (*)(void *ctx, uint64_t va, void *dst, size_t n);
++
++namespace detail {
++
++inline bool parse_hex(const char *s, uint64_t *out) {
++  if (!s || !*s)
++    return false;
++  char *end = nullptr;
++  const unsigned long long v = std::strtoull(s, &end, 16);
++  if (end == s || *end != '\0')
++    return false;
++  *out = static_cast<uint64_t>(v);
++  return true;
++}
++
++inline void copy_cstr(char *dst, size_t cap, const char *src, size_t len) {
++  const size_t n = len < cap - 1 ? len : cap - 1;
++  std::memcpy(dst, src, n);
++  dst[n] = '\0';
++}
++
++/* Splits `line` in place on spaces/tabs; returns token count (max `cap`). */
++inline int tokenize(char *line, char **tok, int cap) {
++  int n = 0;
++  char *p = line;
++  while (*p && n < cap) {
++    while (*p == ' ' || *p == '\t')
++      ++p;
++    if (!*p)
++      break;
++    tok[n++] = p;
++    while (*p && *p != ' ' && *p != '\t')
++      ++p;
++    if (*p)
++      *p++ = '\0';
++  }
++  return n;
++}
++
++inline bool parse_field(const char *tok, Field *f) {
++  /* name:size:offset_hex */
++  const char *c1 = std::strchr(tok, ':');
++  if (!c1)
++    return false;
++  const char *c2 = std::strchr(c1 + 1, ':');
++  if (!c2)
++    return false;
++  const size_t name_len = static_cast<size_t>(c1 - tok);
++  if (name_len == 0 || name_len >= sizeof(f->name))
++    return false;
++  char size_buf[8];
++  const size_t size_len = static_cast<size_t>(c2 - (c1 + 1));
++  if (size_len == 0 || size_len >= sizeof(size_buf))
++    return false;
++  copy_cstr(size_buf, sizeof(size_buf), c1 + 1, size_len);
++  const long sz = std::strtol(size_buf, nullptr, 10);
++  if (sz != 1 && sz != 2 && sz != 4 && sz != 8)
++    return false;
++  uint64_t off = 0;
++  if (!parse_hex(c2 + 1, &off) || off > 0xFFFFFFFFull)
++    return false;
++  copy_cstr(f->name, sizeof(f->name), tok, name_len);
++  f->size = static_cast<uint8_t>(sz);
++  f->off = static_cast<uint32_t>(off);
++  return true;
++}
++
++} // namespace detail
++
++/**
++ * Parses `text` (NUL-terminated, not modified). Writes up to `max` probes to
++ * `out`; malformed lines are skipped. Returns the number of probes parsed.
++ */
++inline int parse(const char *text, Probe *out, int max) {
++  int count = 0;
++  if (!text || !out)
++    return 0;
++  const char *p = text;
++  while (*p && count < max) {
++    const char *eol = std::strchr(p, '\n');
++    const size_t len = eol ? static_cast<size_t>(eol - p) : std::strlen(p);
++    char line[256];
++    if (len < sizeof(line)) {
++      std::memcpy(line, p, len);
++      line[len] = '\0';
++      char *tok[4 + kMaxFields + 1];
++      const int nt = detail::tokenize(line, tok, 4 + kMaxFields + 1);
++      if (nt >= 5 && tok[0][0] != '#') {
++        Probe pr{};
++        uint64_t base = 0;
++        const bool ok_hdr = std::strlen(tok[0]) < sizeof(pr.title) &&
++                            std::strlen(tok[1]) < sizeof(pr.label) &&
++                            detail::parse_hex(tok[2], &base) &&
++                            (tok[3][0] == '0' || tok[3][0] == '1') &&
++                            tok[3][1] == '\0';
++        if (ok_hdr) {
++          std::strcpy(pr.title, tok[0]);
++          std::strcpy(pr.label, tok[1]);
++          pr.base = base;
++          pr.deref = tok[3][0] == '1';
++          bool ok = true;
++          for (int i = 4; i < nt && pr.nfields < kMaxFields; ++i) {
++            if (!detail::parse_field(tok[i], &pr.fields[pr.nfields])) {
++              ok = false;
++              break;
++            }
++            ++pr.nfields;
++          }
++          if (ok && pr.nfields > 0)
++            out[count++] = pr;
++        }
++      }
++    }
++    if (!eol)
++      break;
++    p = eol + 1;
++  }
++  return count;
++}
++
++/**
++ * Formats all probes matching `title` as "LABEL NAME:val NAME:val  LABEL2 ...".
++ * Unreadable values print as '?'. Output is always NUL-terminated and
++ * truncated to `cap`. Returns the string length.
++ */
++inline size_t format(const Probe *probes, int n, const char *title, ReadFn rd,
++                     void *ctx, char *out, size_t cap) {
++  if (!out || cap == 0)
++    return 0;
++  out[0] = '\0';
++  size_t used = 0;
++  auto append = [&](const char *s) {
++    const size_t l = std::strlen(s);
++    const size_t room = cap - 1 - used;
++    const size_t c = l < room ? l : room;
++    std::memcpy(out + used, s, c);
++    used += c;
++    out[used] = '\0';
++  };
++  for (int i = 0; i < n; ++i) {
++    const Probe &pr = probes[i];
++    if (std::strcmp(pr.title, title) != 0)
++      continue;
++    if (used > 0)
++      append("  ");
++    append(pr.label);
++    uint64_t obj = pr.base;
++    bool obj_ok = true;
++    if (pr.deref) {
++      uint64_t ptr = 0;
++      obj_ok = rd(ctx, pr.base, &ptr, sizeof(ptr)) && ptr != 0;
++      obj = ptr;
++    }
++    for (int k = 0; k < pr.nfields; ++k) {
++      const Field &f = pr.fields[k];
++      char buf[40];
++      uint64_t v = 0;
++      if (obj_ok && rd(ctx, obj + f.off, &v, f.size)) {
++        /* little endian: the low `size` bytes of v hold the value */
++        if (f.size < 8)
++          v &= (1ull << (8 * f.size)) - 1ull;
++        std::snprintf(buf, sizeof(buf), " %s:%llu", f.name,
++                      static_cast<unsigned long long>(v));
++      } else {
++        std::snprintf(buf, sizeof(buf), " %s:?", f.name);
++      }
++      append(buf);
++    }
++  }
++  return used;
++}
++
++} // namespace onion::daemon::probes
+diff --git a/source/daemon/source/app_lifecycle_runtime.cpp b/source/daemon/source/app_lifecycle_runtime.cpp
+index 3ea2e93..081373f 100644
+--- a/source/daemon/source/app_lifecycle_runtime.cpp
++++ b/source/daemon/source/app_lifecycle_runtime.cpp
+@@ -5,7 +5,16 @@
+ #include "sprx_plugin_manager_runtime.hpp"
+ 
+ #include <onion/app_lifecycle.hpp>
++#include <onion/ipc_client.hpp>
+ #include <onion/log.h>
++#include <onion/proc_query.h>
++
++#include <cstdio>
++#include <memory>
++#include <new>
++#include <pthread.h>
++#include <string>
++#include <unistd.h>
+ 
+ namespace onion::daemon::app_lifecycle {
+ namespace {
+@@ -38,6 +47,114 @@ public:
+   }
+ };
+ 
++/* Creating the runtime cheat session at BigAppStarted (exec time) lets the
++ * util daemon apply JSON "enabled": true cheats before the game runs its
++ * initialization — the timing framerate patches require. Mid-run toggling
++ * of those leaves the game's already-initialized frame loop at its old
++ * rate and crashes on gameplay entry. */
++/* IPC_Client is shared with other lifecycle work; serialize our own use. */
++pthread_mutex_t g_cheat_prime_lock = PTHREAD_MUTEX_INITIALIZER;
++
++/* Asks the util daemon for the runtime cheat list, which creates the session
++ * and triggers the exec-time auto-apply. */
++bool prime_cheat_session(const std::string &title_id, pid_t event_pid,
++                         const onion_bigapp_process_t &process) {
++  pthread_mutex_lock(&g_cheat_prime_lock);
++  std::string cheats;
++  const bool ok = IPC_Client::getInstance(true).GetGameCheats(
++      title_id, cheats, "runtime", process.pid, process.appid,
++      process.process_name, process.session_generation);
++  pthread_mutex_unlock(&g_cheat_prime_lock);
++  if (!ok) {
++    LOG_WARN("[lifecycle] cheat session request failed pid=%d tid=%s",
++             static_cast<int>(event_pid), title_id.c_str());
++  } else {
++    LOG_INFO("[lifecycle] cheat session primed for %s (pid=%d)",
++             title_id.c_str(), static_cast<int>(event_pid));
++  }
++  return ok;
++}
++
++struct CheatRetryContext {
++  pid_t pid;
++  std::string title_id;
++};
++
++/* The "running big app" query can still be unavailable at the BigAppStarted
++ * event (race seen on 2026-10-01: rc=-1, session never created, no mods
++ * applied). Poll briefly instead of giving up; the game is still in its
++ * early startup, so applying within a few hundred ms is still exec-time. */
++void *cheat_session_retry_thread(void *arg) noexcept {
++  std::unique_ptr<CheatRetryContext> ctx(static_cast<CheatRetryContext *>(arg));
++  constexpr int kStepMs = 10;
++  constexpr int kMaxMs = 3000;
++  for (int waited = 0; waited <= kMaxMs; waited += kStepMs) {
++    if (!isProcessAlive(ctx->pid)) {
++      LOG_DEBUG("[lifecycle] cheat session retry: pid=%d exited after %d ms",
++                static_cast<int>(ctx->pid), waited);
++      return nullptr;
++    }
++    onion_bigapp_process_t process{};
++    const int rc = onion_resolve_running_bigapp(&process);
++    if ((rc == 0 || rc == -2) && process.pid > 0) {
++      if (process.pid != ctx->pid) {
++        LOG_WARN("[lifecycle] cheat session retry: running app pid=%d differs "
++                 "from started pid=%d; not priming",
++                 static_cast<int>(process.pid), static_cast<int>(ctx->pid));
++        return nullptr;
++      }
++      LOG_INFO("[lifecycle] cheat session identity available after %d ms "
++               "(pid=%d)",
++               waited, static_cast<int>(ctx->pid));
++      prime_cheat_session(ctx->title_id, ctx->pid, process);
++      return nullptr;
++    }
++    usleep(kStepMs * 1000);
++  }
++  LOG_WARN("[lifecycle] cheat session: bigapp identity still unavailable "
++           "after %d ms (pid=%d tid=%s); mods will not auto-apply",
++           kMaxMs, static_cast<int>(ctx->pid), ctx->title_id.c_str());
++  return nullptr;
++}
++
++/* Creating the runtime cheat session at BigAppStarted (exec time) lets the
++ * util daemon apply JSON "enabled": true cheats before the game runs its
++ * initialization — the timing framerate patches require. Mid-run toggling
++ * of those leaves the game's already-initialized frame loop at its old
++ * rate and crashes on gameplay entry. */
++class CheatSessionLifecycleSubscriber final
++    : public onion::lifecycle::ISubscriber {
++public:
++  int priority() const noexcept override { return 50; }
++
++  bool on_event(const onion::lifecycle::Event &event) noexcept override {
++    if (event.type != onion::lifecycle::EventType::BigAppStarted) {
++      return true;
++    }
++    onion_bigapp_process_t process{};
++    const int rc = onion_resolve_running_bigapp(&process);
++    if ((rc != 0 && rc != -2) || process.pid <= 0) {
++      LOG_DEBUG("[lifecycle] cheat session: bigapp identity unavailable "
++                "rc=%d pid=%d; retrying in background",
++                rc, static_cast<int>(event.app.pid));
++      auto *ctx = new (std::nothrow) CheatRetryContext{
++          event.app.pid, std::string(event.app.title_id)};
++      pthread_t thr = nullptr;
++      if (!ctx || pthread_create(&thr, nullptr, cheat_session_retry_thread,
++                                 ctx) != 0) {
++        LOG_WARN("[lifecycle] cheat session retry thread failed pid=%d",
++                 static_cast<int>(event.app.pid));
++        delete ctx;
++      } else {
++        pthread_detach(thr);
++      }
++      return true;
++    }
++    prime_cheat_session(event.app.title_id, event.app.pid, process);
++    return true;
++  }
++};
++
+ class SprxLifecycleSubscriber final : public onion::lifecycle::ISubscriber {
+ public:
+   int priority() const noexcept override { return 100; }
+@@ -60,11 +177,13 @@ public:
+ struct Runtime {
+   AppJailbreakLifecycleSubscriber app_jailbreak;
+   SprxLifecycleSubscriber sprx;
++  CheatSessionLifecycleSubscriber cheat_session;
+   onion::lifecycle::Dispatcher dispatcher;
+ 
+   Runtime() : dispatcher(32) {
+     (void)dispatcher.subscribe(app_jailbreak);
+     (void)dispatcher.subscribe(sprx);
++    (void)dispatcher.subscribe(cheat_session);
+   }
+ };
+ 
+diff --git a/source/daemon/source/daemon_probes.cpp b/source/daemon/source/daemon_probes.cpp
+new file mode 100644
+index 0000000..b4c4a29
+--- /dev/null
++++ b/source/daemon/source/daemon_probes.cpp
+@@ -0,0 +1,173 @@
++/* Copyright (C) 2026 OnionHEN / LightningMods
++ *
++ * Overlay debug probes: reads small values from the running game's memory
++ * (config: /data/OnionHEN/debug_probes.txt, see debug_probes.hpp) and the
++ * game's total mapped memory, and attaches both to every published FPS
++ * sample so ShellUI can show them without any extra IPC.
++ */
++#include "daemon_ops.hpp"
++#include "debug_probes.hpp"
++
++#include <onion/fps_publish.hpp>
++#include <onion/log.h>
++#include <onion/proc_dmap.h>
++
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <fcntl.h>
++#include <pthread.h>
++#include <sys/stat.h>
++#include <sys/sysctl.h>
++#include <sys/types.h>
++#include <time.h>
++#include <unistd.h>
++
++#ifndef KERN_PROC_VMMAP
++#define KERN_PROC_VMMAP 32
++#endif
++
++namespace {
++
++using namespace onion::daemon::probes;
++
++constexpr const char *kProbeFile = "/data/OnionHEN/debug_probes.txt";
++constexpr uint64_t kRefreshNs = 500ull * 1000ull * 1000ull;   /* probes: 0.5 s */
++constexpr uint64_t kMemRefreshNs = 2000ull * 1000ull * 1000ull; /* vm map: 2 s */
++constexpr uint64_t kFileCheckNs = 5000ull * 1000ull * 1000ull;  /* config: 5 s */
++
++pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
++
++Probe g_probes[kMaxProbes];
++int g_probe_count = 0;
++time_t g_file_mtime = 0;
++uint64_t g_file_check_ns = 0;
++
++int g_cache_pid = -1;
++char g_cache_tid[16] = {};
++char g_cache_dbg[kDbgTextCap] = {};
++uint64_t g_cache_dbg_ns = 0;
++uint32_t g_cache_mem_mb = 0;
++uint64_t g_cache_mem_ns = 0;
++
++uint64_t mono_ns() {
++  struct timespec ts;
++  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0)
++    return 0;
++  return static_cast<uint64_t>(ts.tv_sec) * 1000000000ull +
++         static_cast<uint64_t>(ts.tv_nsec);
++}
++
++void reload_probes_if_changed(uint64_t now) {
++  if (g_file_check_ns != 0 && now - g_file_check_ns < kFileCheckNs)
++    return;
++  g_file_check_ns = now;
++  struct stat st;
++  if (stat(kProbeFile, &st) != 0) {
++    if (g_probe_count != 0)
++      LOG_INFO("[probes] %s removed; probes disabled", kProbeFile);
++    g_probe_count = 0;
++    g_file_mtime = 0;
++    return;
++  }
++  if (st.st_mtime == g_file_mtime)
++    return;
++  g_file_mtime = st.st_mtime;
++  const int fd = open(kProbeFile, O_RDONLY);
++  if (fd < 0)
++    return;
++  static char buf[4096];
++  const ssize_t n = read(fd, buf, sizeof(buf) - 1);
++  close(fd);
++  if (n <= 0) {
++    g_probe_count = 0;
++    return;
++  }
++  buf[n] = '\0';
++  g_probe_count = parse(buf, g_probes, kMaxProbes);
++  LOG_INFO("[probes] loaded %d probe(s) from %s", g_probe_count, kProbeFile);
++}
++
++bool read_game(void *ctx, uint64_t va, void *dst, size_t n) {
++  const pid_t pid = static_cast<pid_t>(reinterpret_cast<intptr_t>(ctx));
++  return onion_proc_copyout(pid, va, dst, n) == 0;
++}
++
++/* Sum of all vm map entries (FreeBSD struct kinfo_vmentry layout), in MB. */
++uint32_t game_mapped_mb(pid_t pid) {
++  int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_VMMAP, static_cast<int>(pid)};
++  size_t len = 0;
++  if (sysctl(mib, 4, nullptr, &len, nullptr, 0) != 0 || len == 0)
++    return 0;
++  len += len / 4 + 4096; /* the map can grow between the two calls */
++  unsigned char *buf = static_cast<unsigned char *>(std::malloc(len));
++  if (!buf)
++    return 0;
++  uint64_t total = 0;
++  if (sysctl(mib, 4, buf, &len, nullptr, 0) == 0) {
++    size_t off = 0;
++    while (off + 24 <= len) {
++      int32_t sz = 0;
++      std::memcpy(&sz, buf + off, sizeof(sz));
++      if (sz < 24 || off + static_cast<size_t>(sz) > len)
++        break;
++      uint64_t start = 0, end = 0;
++      std::memcpy(&start, buf + off + 8, sizeof(start));
++      std::memcpy(&end, buf + off + 16, sizeof(end));
++      if (end > start)
++        total += end - start;
++      off += static_cast<size_t>(sz);
++    }
++  }
++  std::free(buf);
++  return static_cast<uint32_t>(total >> 20);
++}
++
++void decorate(OnionFpsSample &s) {
++  std::memset(s.dbg, 0, sizeof(s.dbg));
++  s.game_mem_mb = 0;
++  if (s.pid <= 0 || s.title_id[0] == '\0')
++    return;
++
++  pthread_mutex_lock(&g_lock);
++  const uint64_t now = mono_ns();
++  const bool new_target = g_cache_pid != s.pid ||
++                          std::strncmp(g_cache_tid, s.title_id,
++                                       sizeof(g_cache_tid)) != 0;
++  if (new_target) {
++    g_cache_pid = s.pid;
++    std::strncpy(g_cache_tid, s.title_id, sizeof(g_cache_tid) - 1);
++    g_cache_dbg[0] = '\0';
++    g_cache_dbg_ns = 0;
++    g_cache_mem_mb = 0;
++    g_cache_mem_ns = 0;
++  }
++
++  if (g_cache_dbg_ns == 0 || now - g_cache_dbg_ns >= kRefreshNs) {
++    g_cache_dbg_ns = now;
++    reload_probes_if_changed(now);
++    if (g_probe_count > 0) {
++      format(g_probes, g_probe_count, g_cache_tid, read_game,
++             reinterpret_cast<void *>(static_cast<intptr_t>(s.pid)),
++             g_cache_dbg, sizeof(g_cache_dbg));
++    } else {
++      g_cache_dbg[0] = '\0';
++    }
++  }
++  if (g_cache_mem_ns == 0 || now - g_cache_mem_ns >= kMemRefreshNs) {
++    g_cache_mem_ns = now;
++    g_cache_mem_mb = game_mapped_mb(static_cast<pid_t>(s.pid));
++  }
++
++  std::memcpy(s.dbg, g_cache_dbg, sizeof(s.dbg) - 1);
++  s.game_mem_mb = g_cache_mem_mb;
++  pthread_mutex_unlock(&g_lock);
++}
++
++} // namespace
++
++void daemon_probes_init() noexcept {
++  onion::fps::set_decorator(&decorate);
++  LOG_INFO("[probes] overlay probe decorator registered");
++}
+diff --git a/source/daemon/source/main.cpp b/source/daemon/source/main.cpp
+index 3139b41..93f6e22 100644
+--- a/source/daemon/source/main.cpp
++++ b/source/daemon/source/main.cpp
+@@ -175,6 +175,7 @@ void start_worker_threads(pthread_t* app_jailbreak_thr, pthread_t* msg_thr) {
+   pthread_t fan_thr = nullptr;
+   pthread_create(&fan_thr, nullptr, fan_maintenance_thread, nullptr);
+   pthread_detach(fan_thr);
++  daemon_probes_init();
+   pthread_t fps_thr = nullptr;
+   pthread_create(&fps_thr, nullptr, fps_sampler_thread, nullptr);
+   pthread_detach(fps_thr);
+diff --git a/source/libonion_fps/include/onion/fps_publish.hpp b/source/libonion_fps/include/onion/fps_publish.hpp
+index afe55bc..7045552 100644
+--- a/source/libonion_fps/include/onion/fps_publish.hpp
++++ b/source/libonion_fps/include/onion/fps_publish.hpp
+@@ -6,6 +6,10 @@
+ namespace onion {
+ namespace fps {
+ 
++/** Optional hook run on every published sample (daemon fills extra fields). */
++using DecorateFn = void (*)(OnionFpsSample &sample);
++void set_decorator(DecorateFn fn);
++
+ bool publish_open();
+ void publish_close();
+ void publish(const OnionFpsSample &sample);
+diff --git a/source/libonion_fps/include/onion/fps_sample.h b/source/libonion_fps/include/onion/fps_sample.h
+index 3b57675..744864b 100644
+--- a/source/libonion_fps/include/onion/fps_sample.h
++++ b/source/libonion_fps/include/onion/fps_sample.h
+@@ -44,7 +44,10 @@ struct OnionFpsSample {
+   uint32_t pad_align;
+   uint64_t unix_ns;
+   char title_id[16];
+-  uint8_t reserved[80];
++  /* Daemon-side extras (filled by the publish decorator; 0 / empty = unknown). */
++  uint32_t game_mem_mb; /* game process memory (resident, else mapped), MB */
++  char dbg[72];         /* NUL-terminated probe text for the overlay DBG group */
++  uint8_t reserved[4];
+ };
+ 
+ static inline uint64_t onion_fps_realtime_ns(void) {
+@@ -113,4 +116,8 @@ static_assert(sizeof(OnionFpsSample) == ONION_FPS_SAMPLE_BYTES,
+               "OnionFpsSample must stay 128 bytes");
+ static_assert(offsetof(OnionFpsSample, unix_ns) == 24,
+               "unix_ns must be 8-byte aligned");
++static_assert(offsetof(OnionFpsSample, game_mem_mb) == 48,
++              "game_mem_mb offset is part of the daemon/ShellUI contract");
++static_assert(offsetof(OnionFpsSample, dbg) == 52,
++              "dbg offset is part of the daemon/ShellUI contract");
+ #endif
+diff --git a/source/libonion_fps/source/fps_publish.cpp b/source/libonion_fps/source/fps_publish.cpp
+index 8858c49..1272793 100644
+--- a/source/libonion_fps/source/fps_publish.cpp
++++ b/source/libonion_fps/source/fps_publish.cpp
+@@ -16,9 +16,12 @@ namespace {
+ 
+ OnionFpsSample *g_map = nullptr;
+ bool g_logged_fail = false;
++DecorateFn g_decorate = nullptr;
+ 
+ } // namespace
+ 
++void set_decorator(DecorateFn fn) { g_decorate = fn; }
++
+ bool publish_open() {
+   if (g_map && g_map != MAP_FAILED)
+     return true;
+@@ -66,10 +69,15 @@ void publish_close() {
+ void publish(const OnionFpsSample &sample) {
+   if (!publish_open())
+     return;
+-  const uint32_t seq = g_map->seq;
+-  __atomic_store_n(&g_map->seq, seq + 1u, __ATOMIC_RELEASE);
+   OnionFpsSample tmp = sample;
+   tmp.magic = ONION_FPS_MAGIC;
++  /* The decorator can take milliseconds (vm map sysctl, game memory reads).
++   * Run it before the seqlock write window so readers never observe an odd
++   * sequence number for that long (they would fail and the overlay flickers). */
++  if (g_decorate)
++    g_decorate(tmp);
++  const uint32_t seq = g_map->seq;
++  __atomic_store_n(&g_map->seq, seq + 1u, __ATOMIC_RELEASE);
+   tmp.seq = seq + 2u;
+   std::memcpy(static_cast<void *>(g_map), &tmp, sizeof(tmp));
+   __atomic_store_n(&g_map->seq, seq + 2u, __ATOMIC_RELEASE);
+diff --git a/source/shellui/include/hooked_funcs.hpp b/source/shellui/include/hooked_funcs.hpp
+index 3977e8a..dee348a 100644
+--- a/source/shellui/include/hooked_funcs.hpp
++++ b/source/shellui/include/hooked_funcs.hpp
+@@ -175,6 +175,8 @@ void settings_commit(bool reload_main = false, bool reload_util = false);
+ void shellui_request_home_reload(void);
+ /** Drain the one-shot Home reload; call only from UI thread after hooks ready. */
+ void shellui_poll_home_reload(void);
++/* UI thread, called every frame: services /system_tmp/onionhen/screenshot_request (see hook_capture.cpp). */
++void shellui_poll_screenshot_request(void);
+ 
+ /** UI-thread ticker for the cheat-download XML progress page. */
+ void shellui_poll_cheat_progress(void);
+diff --git a/source/shellui/include/shellui_types.hpp b/source/shellui/include/shellui_types.hpp
+index 117d4bd..a08f23a 100644
+--- a/source/shellui/include/shellui_types.hpp
++++ b/source/shellui/include/shellui_types.hpp
+@@ -44,6 +44,7 @@ enum RemoveWidget {
+     REMOVE_IP_OVERLAY,
+     REMOVE_FAN_OVERLAY,
+     REMOVE_FPS_OVERLAY,
++    REMOVE_DBG_OVERLAY,
+     REMOVE_ALL_OVERLAYS,
+ };
+ 
+@@ -54,6 +55,7 @@ enum CreateWidget {
+     CREATE_IP_OVERLAY,
+     CREATE_FAN_OVERLAY,
+     CREATE_FPS_OVERLAY,
++    CREATE_DBG_OVERLAY,
+     CREATE_ALL_OVERLAYS,
+ };
+ 
+diff --git a/source/shellui/src/hook_capture.cpp b/source/shellui/src/hook_capture.cpp
+index 4c81a5e..a57c5b3 100644
+--- a/source/shellui/src/hook_capture.cpp
++++ b/source/shellui/src/hook_capture.cpp
+@@ -5,6 +5,7 @@
+ #include "debug_settings_route_runtime.hpp"
+ #include "detour.h"
+ #include "ipc.hpp"
++#include "external_symbols.hpp"
+ #include <msg.hpp>
+ #include <pthread.h>
+ #include <sys/stat.h>
+@@ -14,8 +15,125 @@
+ #include <atomic>
+ #include <cstring>
+ #include <algorithm>
++#include <cstdio>
++#include <ctime>
++#include <onion/system_tmp.h>
+ 
+ 
++
++/* ------------------------------------------------------------------------- */
++/* Remote screenshot: remember the arguments of a REAL CaptureScreen call (the */
++/* user presses the screenshot button once after ShellUI has loaded) and replay */
++/* them on request. Trigger: create /system_tmp/onionhen/screenshot_request     */
++/* (FTP-visible); the file is consumed on the UI thread (OnRender_Hook, every   */
++/* ~6th frame) and the result is written to .../screenshot_ack ("<epoch_ms>     */
++/* <status>", 0 = called, 1 = no cached args yet, 2 = original missing).        */
++/* .../screenshot_state shows whether the cache is armed.                       */
++/* ------------------------------------------------------------------------- */
++namespace {
++
++constexpr const char *kShotRequestPath = ONION_SYSTEM_TMP_ROOT "/screenshot_request";
++constexpr const char *kShotAckPath = ONION_SYSTEM_TMP_ROOT "/screenshot_ack";
++constexpr const char *kShotStatePath = ONION_SYSTEM_TMP_ROOT "/screenshot_state";
++
++struct CaptureCache {
++  MonoObject *inst = nullptr;
++  MonoString *format = nullptr;
++  MonoObject *info = nullptr;
++  uint32_t h_inst = 0, h_format = 0, h_info = 0; /* pinned GC handles */
++  int user_id = 0;
++  long device_id = 0;
++  int cap_type = 0;
++  bool is_new = false;
++  bool valid = false;
++  unsigned presses = 0;
++};
++
++CaptureCache g_cap;
++bool g_cap_synthetic = false; /* true while we replay the call ourselves */
++
++int64_t shot_now_ms() {
++  timespec ts{};
++  clock_gettime(CLOCK_REALTIME, &ts);
++  return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
++}
++
++void shot_write_file(const char *path, const char *text) {
++  FILE *f = fopen(path, "w");
++  if (!f)
++    return;
++  fputs(text, f);
++  fclose(f);
++}
++
++void shot_write_state() {
++  char buf[160];
++  snprintf(buf, sizeof(buf), "valid=%d presses=%u user=%d device=%ld type=%d args=%d\n",
++           g_cap.valid ? 1 : 0, g_cap.presses, g_cap.user_id, g_cap.device_id,
++           g_cap.cap_type, g_cap.is_new ? 5 : 4);
++  shot_write_file(kShotStatePath, buf);
++}
++
++void shot_pin(MonoObject *obj, uint32_t &handle) {
++  if (handle && mono_gchandle_free)
++    mono_gchandle_free(handle);
++  handle = (obj && mono_gchandle_new) ? mono_gchandle_new(obj, /*pinned=*/1) : 0;
++}
++
++void shot_cache(MonoObject *inst, int userId, long deviceId, int capType,
++                MonoString *format, MonoObject *info, bool is_new) {
++  if (g_cap_synthetic || !inst)
++    return;
++  shot_pin(inst, g_cap.h_inst);
++  shot_pin(reinterpret_cast<MonoObject *>(format), g_cap.h_format);
++  shot_pin(info, g_cap.h_info);
++  g_cap.inst = inst;
++  g_cap.format = format;
++  g_cap.info = info;
++  g_cap.user_id = userId;
++  g_cap.device_id = deviceId;
++  g_cap.cap_type = capType;
++  g_cap.is_new = is_new;
++  g_cap.valid = true;
++  g_cap.presses++;
++  shot_write_state();
++}
++
++} // namespace
++
++void shellui_poll_screenshot_request(void) {
++  static int frames = 0;
++  if (++frames < 6)
++    return;
++  frames = 0;
++
++  struct stat st;
++  if (stat(kShotRequestPath, &st) != 0)
++    return;
++  unlink(kShotRequestPath);
++
++  int status = 0;
++  if (!g_cap.valid) {
++    status = 1;
++  } else if (g_cap.is_new ? !CaptureScreen_orig_new : !CaptureScreen_orig_old) {
++    status = 2;
++  } else {
++    g_cap_synthetic = true;
++    if (g_cap.is_new)
++      CaptureScreen_orig_new(g_cap.inst, g_cap.user_id, g_cap.device_id,
++                             g_cap.cap_type, g_cap.format, g_cap.info);
++    else
++      CaptureScreen_orig_old(g_cap.inst, g_cap.user_id, g_cap.device_id,
++                             g_cap.cap_type, g_cap.info);
++    g_cap_synthetic = false;
++  }
++
++  char buf[64];
++  snprintf(buf, sizeof(buf), "%lld %d\n", static_cast<long long>(shot_now_ms()), status);
++  shot_write_file(kShotAckPath, buf);
++  LOG_DEBUG("screenshot_request handled: status=%d", status);
++}
++
+ bool CaptureScreen();
+ 
+ bool CaptureScreen(){
+@@ -39,6 +157,7 @@ void CaptureScreen_old(MonoObject *inst, int userId, long deviceId, int capType,
+     return;
+   }
+ 
++  shot_cache(inst, userId, deviceId, capType, nullptr, capInfo, false);
+ #if SHELL_DEBUG == 1
+   LOG_DEBUG("CaptureScreen: userId: %d, deviceId: %ld, capType: %d", userId, deviceId, capType);
+ #endif
+@@ -60,6 +179,7 @@ void CaptureScreen_new(MonoObject * inst, int userId, long deviceId, int capType
+     return;
+   }
+ 
++  shot_cache(inst, userId, deviceId, capType, format, capInfo, true);
+ #if SHELL_DEBUG == 1
+   LOG_DEBUG("CaptureScreen_new: userId: %d, deviceId: %ld, capType: %d", userId, deviceId, capType);
+ #endif
+diff --git a/source/shellui/src/onpress_overlay.cpp b/source/shellui/src/onpress_overlay.cpp
+index ef51739..b23358c 100644
+--- a/source/shellui/src/onpress_overlay.cpp
++++ b/source/shellui/src/onpress_overlay.cpp
+@@ -24,6 +24,7 @@ static void rebuild_overlay_bar() {
+     CreateGameWidget(CREATE_IP_OVERLAY);
+   if (g_settings.overlay_fan)
+     CreateGameWidget(CREATE_FAN_OVERLAY);
++  CreateGameWidget(CREATE_DBG_OVERLAY);
+ }
+ 
+ static OnPressResult toggle_overlay_flag(OnPressContext &ctx, bool &flag) {
+diff --git a/source/shellui/src/prx_overlay.cpp b/source/shellui/src/prx_overlay.cpp
+index cd436cc..d538df8 100644
+--- a/source/shellui/src/prx_overlay.cpp
++++ b/source/shellui/src/prx_overlay.cpp
+@@ -10,6 +10,7 @@
+ #include <onion/settings.hpp>
+ #include "plugin_progress.hpp"
+ #include <cstdio>
++#include <cstring>
+ #include <cstdlib>
+ #include <vector>
+ 
+@@ -98,19 +99,32 @@ void Get_Page_Table_Stats(int vm, int type, int* Used, int* Free, int* Total)
+         *Total = _Total;
+ }
+ 
++/* Every per-core idle thread ("SceIdleCpu<N>", incl. "SceIdleCpuRv"). On this
++ * console they are numbered 8..15 (+Rv), NOT 0..7, so name-matching 0..7 found
++ * nothing and every CPU figure was meaningless. */
++constexpr int kMaxIdleThreads = 16;
++unsigned int g_idle_tids[kMaxIdleThreads] = {};
++int g_idle_count = 0;
++
+ void calc_usage(unsigned int idle_tid[8], thread_usages* cur, thread_usages* prev, float usage_out[8])
+ {
+     if (cur->Thread_Count <= 0 || prev->Thread_Count <= 0) //Make sure our banks have threads
+         return;
+ 
+-    //Calculate the Current time difference from the last bank to the current bank.
+-    float Current_Time_Total = ((prev->current_time.tv_sec + (prev->current_time.tv_nsec / 1000000000.0f)) - (cur->current_time.tv_sec + (cur->current_time.tv_nsec / 1000000000.0f)));
++    auto ts_ns = [](const OrbisKernelTimespec& t) -> double {
++        return static_cast<double>(t.tv_sec) * 1e9 + static_cast<double>(t.tv_nsec);
++    };
++
++    //Wall-clock time between the two samples (`cur` is the newer bank), in ns.
++    const double wall_ns = ts_ns(cur->current_time) - ts_ns(prev->current_time);
++    if (wall_ns <= 0.0)
++        return;
+ 
+-    //Here this could use to be improved but essetially what its doing is finding the thread information for the idle threads using their thread Index stored from before.
++    //Find the idle thread of each core in both banks (null when not found).
+     struct Data_s
+     {
+-        Proc_Stats* Cur;
+-        Proc_Stats* Prev;
++        Proc_Stats* Cur = nullptr;
++        Proc_Stats* Prev = nullptr;
+     }Data[8];
+ 
+     for (int i = 0; i < cur->Thread_Count; i++)
+@@ -131,27 +145,197 @@ void calc_usage(unsigned int idle_tid[8], thread_usages* cur, thread_usages* pre
+         }
+     }
+ 
+-    //Here we loop through each core to calculate the total usage time as its split into user/sustem
++    //Usage per core = 1 - (idle thread CPU time delta / wall time delta).
++    //Both the idle times and the wall time are summed in nanoseconds; the
++    //previous code added seconds to nanoseconds/1e6, which saturated the ratio.
+     for (int i = 0; i < 8; i++)
+     {
+-        float Prev_Usage_Time = (Data[i].Prev->system_cpu_usage_time.tv_sec + (Data[i].Prev->system_cpu_usage_time.tv_nsec / 1000000.0f));
+-        Prev_Usage_Time += (Data[i].Prev->user_cpu_usage_time.tv_sec + (Data[i].Prev->user_cpu_usage_time.tv_nsec / 1000000.0f));
++        if (!Data[i].Cur || !Data[i].Prev)
++        {
++            usage_out[i] = 0.0f; //idle thread missing in a bank: unknown
++            continue;
++        }
+ 
+-        float Cur_Usage_Time = (Data[i].Cur->system_cpu_usage_time.tv_sec + (Data[i].Cur->system_cpu_usage_time.tv_nsec / 1000000.0f));
+-        Cur_Usage_Time += (Data[i].Cur->user_cpu_usage_time.tv_sec + (Data[i].Cur->user_cpu_usage_time.tv_nsec / 1000000.0f));
++        const double prev_idle_ns = ts_ns(Data[i].Prev->system_cpu_usage_time) + ts_ns(Data[i].Prev->user_cpu_usage_time);
++        const double cur_idle_ns = ts_ns(Data[i].Cur->system_cpu_usage_time) + ts_ns(Data[i].Cur->user_cpu_usage_time);
+ 
+-        //We calculate the usage using usage time difference between the two samples divided by the current time difference.
+-        float Idle_Usage = ((Prev_Usage_Time - Cur_Usage_Time) / Current_Time_Total);
++        double idle_frac = (cur_idle_ns - prev_idle_ns) / wall_ns;
++        if (idle_frac > 1.0)
++            idle_frac = 1.0;
++        if (idle_frac < 0.0)
++            idle_frac = 0.0;
+ 
+-        if (Idle_Usage > 1.0f)
+-            Idle_Usage = 1.0f;
++        //Get inverse of idle percentage and express in percent.
++        usage_out[i] = static_cast<float>((1.0 - idle_frac) * 100.0);
++    }
++}
+ 
+-        if (Idle_Usage < 0.0f)
+-            Idle_Usage = 0.0f;
++/* Diagnostic CPU estimate: CPU time consumed by every non-idle thread between
++ * the two samples / (wall time * cores). On 2026-10-01 this read 70-100% at an
++ * idle home screen in 12.3% steps (6-8 "threads" always running), so it is NOT
++ * used for the displayed value yet. It only feeds the [cpu] debug log, which
++ * also names the top consumers so the culprits can be identified.
++ * Returns <0 when unavailable. */
++float calc_busy_avg(const unsigned int idle_tid[8], thread_usages* cur, thread_usages* prev)
++{
++    if (cur->Thread_Count <= 0 || prev->Thread_Count <= 0)
++        return -1.0f;
++
++    auto ts_ns = [](const OrbisKernelTimespec& t) -> double {
++        return static_cast<double>(t.tv_sec) * 1e9 + static_cast<double>(t.tv_nsec);
++    };
++    const double wall_ns = ts_ns(cur->current_time) - ts_ns(prev->current_time);
++    if (wall_ns <= 0.0)
++        return -1.0f;
++
++    constexpr int kTop = 8;
++    struct Top { double d; unsigned int tid; } top[kTop] = {};
++    double busy_ns = 0.0, idle_ns = 0.0;
++    int hint = 0;
++    for (int i = 0; i < cur->Thread_Count; i++)
++    {
++        const unsigned int tid = cur->Threads[i].td_tid;
++        bool is_idle = false;
++        for (int c = 0; c < g_idle_count; c++)
++            if (g_idle_tids[c] == tid)
++                is_idle = true;
++        for (int c = 0; c < 8 && !is_idle; c++)
++            if (idle_tid[c] == tid)
++                is_idle = true;
++
++        //Threads are normally enumerated in the same order in both banks.
++        int found = -1;
++        for (int k = 0; k < prev->Thread_Count; k++)
++        {
++            int j = hint + k;
++            if (j >= prev->Thread_Count)
++                j -= prev->Thread_Count;
++            if (prev->Threads[j].td_tid == tid)
++            {
++                found = j;
++                break;
++            }
++        }
++        if (found < 0)
++            continue; //thread is new since the last sample
++        hint = found + 1;
++
++        const double d =
++            (ts_ns(cur->Threads[i].user_cpu_usage_time) + ts_ns(cur->Threads[i].system_cpu_usage_time)) -
++            (ts_ns(prev->Threads[found].user_cpu_usage_time) + ts_ns(prev->Threads[found].system_cpu_usage_time));
++        if (d <= 0.0)
++            continue;
++        if (is_idle)
++        {
++            idle_ns += d;
++            continue;
++        }
++        busy_ns += d;
++        //keep the largest consumers
++        int slot = -1;
++        for (int t = 0; t < kTop; t++)
++            if (top[t].d < d && (slot < 0 || top[t].d < top[slot].d))
++                slot = t;
++        if (slot >= 0)
++        {
++            top[slot].d = d;
++            top[slot].tid = tid;
++        }
++    }
+ 
+-        //Get inverse of idle percentage and express in percent.
+-        usage_out[i] = (1.0f - Idle_Usage) * 100.0f;
++    //Log the culprits every 5th call (names resolved here, not on every sample).
++    static int calls = 0;
++    if (++calls % 5 == 1)
++    {
++        LOG_DEBUG("[cpu-sum] threads=%d idle-threads=%.0f%% non-idle=%.0f%% of 8 cores (wall %.3f s)",
++                  cur->Thread_Count, idle_ns / (wall_ns * 8.0) * 100.0,
++                  busy_ns / (wall_ns * 8.0) * 100.0, wall_ns / 1e9);
++        for (int a = 0; a < kTop; a++)
++        {
++            int best = -1;
++            for (int t = 0; t < kTop; t++)
++                if (top[t].d > 0.0 && (best < 0 || top[t].d > top[best].d))
++                    best = t;
++            if (best < 0)
++                break;
++            char name[0x40] = {};
++            if (sceKernelGetThreadName(top[best].tid, name) != 0)
++                snprintf(name, sizeof(name), "?");
++            LOG_DEBUG("[cpu-top] tid=%u '%s' %.0f%% of one core", top[best].tid, name,
++                      top[best].d / wall_ns * 100.0);
++            top[best].d = 0.0;
++        }
++    }
++
++    const double cores = g_idle_count > 0 ? static_cast<double>(g_idle_count) : 8.0;
++    double pct = busy_ns / (wall_ns * cores) * 100.0;
++    if (pct > 100.0)
++        pct = 100.0;
++    return static_cast<float>(pct);
++}
++
++/* CPU usage from the idle threads of ALL cores, averaged over a sliding window
++ * of the last 8 samples. Idle threads run for seconds at a time and only add
++ * their time to the counter when switched out, so single 1 s samples jump in
++ * lumps; summing a window conserves the lumps and the average is stable.
++ * Returns <0 when no idle thread is known. */
++float calc_idle_window_usage(thread_usages* cur, thread_usages* prev)
++{
++    if (g_idle_count <= 0 || cur->Thread_Count <= 0 || prev->Thread_Count <= 0)
++        return -1.0f;
++
++    auto ts_ns = [](const OrbisKernelTimespec& t) -> double {
++        return static_cast<double>(t.tv_sec) * 1e9 + static_cast<double>(t.tv_nsec);
++    };
++    const double wall_ns = ts_ns(cur->current_time) - ts_ns(prev->current_time);
++    if (wall_ns <= 0.0)
++        return -1.0f;
++
++    double idle_ns = 0.0;
++    int cores = 0;
++    for (int k = 0; k < g_idle_count; k++)
++    {
++        const Proc_Stats* c = nullptr;
++        const Proc_Stats* p = nullptr;
++        for (int i = 0; i < cur->Thread_Count && !c; i++)
++            if (cur->Threads[i].td_tid == g_idle_tids[k])
++                c = &cur->Threads[i];
++        for (int i = 0; i < prev->Thread_Count && !p; i++)
++            if (prev->Threads[i].td_tid == g_idle_tids[k])
++                p = &prev->Threads[i];
++        if (!c || !p)
++            continue;
++        const double d = (ts_ns(c->user_cpu_usage_time) + ts_ns(c->system_cpu_usage_time)) -
++                         (ts_ns(p->user_cpu_usage_time) + ts_ns(p->system_cpu_usage_time));
++        if (d > 0.0)
++            idle_ns += d;
++        cores++;
++    }
++    if (cores == 0)
++        return -1.0f;
++
++    constexpr int kWindow = 8;
++    static double ring_capacity[kWindow] = {};
++    static double ring_idle[kWindow] = {};
++    static int ring_pos = 0;
++    ring_capacity[ring_pos] = wall_ns * cores;
++    ring_idle[ring_pos] = idle_ns;
++    ring_pos = (ring_pos + 1) % kWindow;
++
++    double cap_sum = 0.0, idle_sum = 0.0;
++    for (int i = 0; i < kWindow; i++)
++    {
++        cap_sum += ring_capacity[i];
++        idle_sum += ring_idle[i];
+     }
++    if (cap_sum <= 0.0)
++        return -1.0f;
++    double usage = (1.0 - idle_sum / cap_sum) * 100.0;
++    if (usage < 0.0)
++        usage = 0.0;
++    if (usage > 100.0)
++        usage = 100.0;
++    return static_cast<float>(usage);
+ }
+ 
+ namespace {
+@@ -226,7 +410,8 @@ void set_label_layout(const char *widget_name, float margin_left,
+ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                        const char *cpu_usage, const char *gpu_temp,
+                        const char *gpu_usage, const char *ram_str,
+-                       const char *ip_str, const char *fan_str) {
++                       const char *ip_str, const char *fan_str,
++                       const char *dbg_str) {
+   const float font_pt =
+       static_cast<float>(onion::overlay_font_pt(g_settings.overlay_font_size));
+   const float scale = font_pt / onion::overlay::kRefFontSize;
+@@ -255,6 +440,8 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+     const char *id_v1;
+     const char *v1;
+     const char *id_sep;
++    const char *t0; /* widest expected value text for v0 (fixed slot width) */
++    const char *t1; /* same for v1 */
+   };
+   GroupSpec specs[onion::kOverlayMetricCount]{};
+   specs[onion::kOverlayMetricFps] = {g_settings.overlay_fps && fps_str,
+@@ -264,7 +451,9 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                                      fps_str,
+                                      nullptr,
+                                      nullptr,
+-                                     "id_fps_sep"};
++                                     "id_fps_sep",
++                                     "000.0",
++                                     nullptr};
+   specs[onion::kOverlayMetricCpu] = {
+       (g_settings.overlay_cpu || g_settings.all_cpu_usage) && cpu_temp,
+       "id_cpu_label",
+@@ -273,7 +462,9 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+       cpu_temp,
+       "id_cpu_usage_value",
+       cpu_usage,
+-      "id_cpu_sep"};
++      "id_cpu_sep",
++      "99C",
++      "100%"};
+   specs[onion::kOverlayMetricGpu] = {g_settings.overlay_gpu && gpu_temp,
+                                      "id_gpu_label",
+                                      "GPU",
+@@ -281,7 +472,9 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                                      gpu_temp,
+                                      "id_gpu_usage_value",
+                                      gpu_usage,
+-                                     "id_gpu_sep"};
++                                     "id_gpu_sep",
++                                     "99C",
++                                     "100%"};
+   specs[onion::kOverlayMetricMemory] = {g_settings.overlay_ram && ram_str,
+                                         "id_ram_label",
+                                         "RAM",
+@@ -289,7 +482,9 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                                         ram_str,
+                                         nullptr,
+                                         nullptr,
+-                                        "id_ram_sep"};
++                                        "id_ram_sep",
++                                        "10000 MB",
++                                        nullptr};
+   specs[onion::kOverlayMetricIp] = {g_settings.overlay_ip && ip_str,
+                                     "id_ip_label",
+                                     "IP",
+@@ -297,7 +492,9 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                                     ip_str,
+                                     nullptr,
+                                     nullptr,
+-                                    "id_ip_sep"};
++                                    "id_ip_sep",
++                                    nullptr,
++                                    nullptr};
+   specs[onion::kOverlayMetricFan] = {g_settings.overlay_fan && fan_str,
+                                      "id_fan_label",
+                                      "FAN",
+@@ -305,11 +502,13 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+                                      fan_str,
+                                      nullptr,
+                                      nullptr,
+-                                     "id_fan_sep"};
++                                     "id_fan_sep",
++                                     "100%",
++                                     nullptr};
+ 
+   auto order = g_settings.overlay_order;
+   onion::overlay_normalize_order(order);
+-  GroupSpec groups[onion::kOverlayMetricCount];
++  GroupSpec groups[onion::kOverlayMetricCount + 1];
+   int ng = 0;
+   for (int metric : order) {
+     if (metric < 0 || metric >= onion::kOverlayMetricCount)
+@@ -319,6 +518,12 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+     groups[ng++] = specs[metric];
+   }
+ 
++  /* Debug probe group (daemon-supplied text) is always last when present. */
++  if (dbg_str && dbg_str[0]) {
++    groups[ng++] = {true,    "id_dbg_label", "DBG",   "id_dbg_value", dbg_str,
++                    nullptr, nullptr,        "id_dbg_sep", nullptr,  nullptr};
++  }
++
+   if (ng == 0)
+     return;
+ 
+@@ -329,13 +534,20 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+     pieces.push_back({gs.id_l, gs.lab,
+                       onion::overlay::estimate_text_width(gs.lab, font_pt), true,
+                       false});
+-    pieces.push_back({gs.id_v0, gs.v0,
+-                      onion::overlay::estimate_text_width(gs.v0, font_pt), false,
+-                      false});
++    /* Slot width = max(live text, widest expected text): stable layout. */
++    auto slot_w = [&](const char *text, const char *tmpl) {
++      float w = onion::overlay::estimate_text_width(text, font_pt);
++      if (tmpl) {
++        const float t = onion::overlay::estimate_text_width(tmpl, font_pt);
++        if (t > w)
++          w = t;
++      }
++      return w;
++    };
++    pieces.push_back({gs.id_v0, gs.v0, slot_w(gs.v0, gs.t0), false, false});
+     if (gs.id_v1 && gs.v1 && gs.v1[0])
+       pieces.push_back(
+-          {gs.id_v1, gs.v1,
+-           onion::overlay::estimate_text_width(gs.v1, font_pt), false, false});
++          {gs.id_v1, gs.v1, slot_w(gs.v1, gs.t1), false, false});
+     /* Pipe after every item except the last. */
+     if (g + 1 < ng)
+       pieces.push_back({gs.id_sep, "|",
+@@ -381,7 +593,8 @@ void layout_bar_labels(const char *fps_str, const char *cpu_temp,
+       "id_gpu_usage_value",  "id_gpu_sep",         "id_ram_label",
+       "id_ram_value",        "id_ram_sep",         "id_ip_label",
+       "id_ip_value",         "id_ip_sep",          "id_fan_label",
+-      "id_fan_value",        "id_fan_sep",
++      "id_fan_value",        "id_fan_sep",         "id_dbg_label",
++      "id_dbg_value",        "id_dbg_sep",
+   };
+   for (const char *id : kAll)
+     set_label_layout(id, kOff, margin_top, 0.0f);
+@@ -399,15 +612,37 @@ void discover_idle_thread_ids(unsigned int idle_tid[kCpuCores]) {
+       count <= 0)
+     return;
+ 
++  struct Found {
++    unsigned int tid;
++    int order;
++  } found[kMaxIdleThreads];
++  int nfound = 0;
+   char thread_name[0x40];
+-  int core = 0;
+-  for (int i = 0; i < count; i++) {
+-    if (!sceKernelGetThreadName(Stat_Data[i].td_tid, thread_name) &&
+-        sscanf(thread_name, "SceIdleCpu%d", &core) == 1 && core >= 0 &&
+-        core < kCpuCores) {
+-      idle_tid[core] = Stat_Data[i].td_tid;
++  for (int i = 0; i < count && nfound < kMaxIdleThreads; i++) {
++    if (sceKernelGetThreadName(Stat_Data[i].td_tid, thread_name) != 0 ||
++        std::strncmp(thread_name, "SceIdleCpu", 10) != 0)
++      continue;
++    const char *suffix = thread_name + 10;
++    const int order = (*suffix >= '0' && *suffix <= '9') ? std::atoi(suffix) : 1000;
++    found[nfound++] = {Stat_Data[i].td_tid, order};
++  }
++  /* insertion sort by core number ("Rv" and other suffixes last) */
++  for (int a = 1; a < nfound; a++) {
++    const Found key = found[a];
++    int b = a - 1;
++    while (b >= 0 && found[b].order > key.order) {
++      found[b + 1] = found[b];
++      b--;
+     }
++    found[b + 1] = key;
+   }
++  g_idle_count = nfound;
++  for (int k = 0; k < nfound; k++)
++    g_idle_tids[k] = found[k].tid;
++  for (int k = 0; k < kCpuCores; k++)
++    idle_tid[k] = k < nfound ? found[k].tid : 0;
++  LOG_DEBUG("[cpu] found %d idle threads (first core order %d)", nfound,
++            nfound > 0 ? found[0].order : -1);
+ }
+ 
+ bool init_overlay_once(unsigned int idle_tid[kCpuCores]) {
+@@ -458,6 +693,8 @@ bool init_overlay_once(unsigned int idle_tid[kCpuCores]) {
+     if (!CreateGameWidget(CREATE_FAN_OVERLAY))
+       widgets_ready = false;
+   }
++  if (!CreateGameWidget(CREATE_DBG_OVERLAY))
++    widgets_ready = false;
+   if (!widgets_ready) {
+     RemoveGameWidget(REMOVE_ALL_OVERLAYS);
+     return false;
+@@ -472,7 +709,7 @@ bool init_overlay_once(unsigned int idle_tid[kCpuCores]) {
+       g_settings.overlay_gpu ? "--%" : nullptr,
+       g_settings.overlay_ram ? "---- MB" : nullptr,
+       g_settings.overlay_ip ? "---.---.---.---" : nullptr,
+-      g_settings.overlay_fan ? "--%" : nullptr);
++      g_settings.overlay_fan ? "--%" : nullptr, nullptr);
+   return true;
+ }
+ 
+@@ -511,11 +748,19 @@ bool sample_cpu_usage(unsigned int idle_tid[kCpuCores], int& current_bank,
+                Usage[0], Usage[1], Usage[2], Usage[3], Usage[4], Usage[5], Usage[6],
+                Usage[7]);
+     } else {
+-      float avg = 0.f;
++      float idle_avg = 0.f;
+       for (int i = 0; i < kCpuCores; i++)
+-        avg += Usage[i];
+-      avg /= static_cast<float>(kCpuCores);
+-      snprintf(cpu_usage, cpu_usage_sz, "%.0f%%", avg);
++        idle_avg += Usage[i];
++      idle_avg /= static_cast<float>(kCpuCores);
++      const float busy_avg = calc_busy_avg(idle_tid, &gThread_Data[!current_bank],
++                                           &gThread_Data[current_bank]);
++      const float window_avg = calc_idle_window_usage(
++          &gThread_Data[!current_bank], &gThread_Data[current_bank]);
++      LOG_DEBUG("[cpu] window=%.1f%% idle-1s=%.1f%% busy-sum=%.1f%% (idle threads=%d)",
++                window_avg, idle_avg, busy_avg, g_idle_count);
++      /* Displayed value: sliding-window average over ALL cores' idle threads. */
++      snprintf(cpu_usage, cpu_usage_sz, "%.0f%%",
++               window_avg >= 0.f ? window_avg : idle_avg);
+     }
+     return true;
+   }
+@@ -526,17 +771,39 @@ bool sample_cpu_usage(unsigned int idle_tid[kCpuCores], int& current_bank,
+ void format_fps_text(char *buf, size_t buf_sz) {
+   if (!buf || buf_sz == 0)
+     return;
++  /* A single failed read (writer mid-publish) must not blank the value. */
++  static int fail_streak = 0;
++  constexpr int kHoldReads = 20;
+   OnionFpsSample sample {};
+   if (onion_fps_read(&sample) == 0 && sample.valid && sample.fps >= 1.f) {
++    fail_streak = 0;
+     if (sample.fps >= 100.f)
+       snprintf(buf, buf_sz, "%.0f", sample.fps);
+     else
+       snprintf(buf, buf_sz, "%.1f", sample.fps);
+-  } else {
++  } else if (++fail_streak > kHoldReads) {
+     snprintf(buf, buf_sz, "--");
+   }
+ }
+ 
++/** DBG group text published by the daemon (empty when no probes apply). */
++void format_dbg_text(char *buf, size_t buf_sz) {
++  if (!buf || buf_sz == 0)
++    return;
++  /* Keep the last good text across transient read failures so the group does
++   * not blink out (and the bar does not reflow); clear after ~1 s of misses. */
++  static int fail_streak = 0;
++  constexpr int kHoldReads = 30;
++  OnionFpsSample sample {};
++  if (onion_fps_read(&sample) == 0) {
++    fail_streak = 0;
++    std::strncpy(buf, sample.dbg, buf_sz - 1);
++    buf[buf_sz - 1] = '\0';
++  } else if (++fail_streak > kHoldReads) {
++    buf[0] = '\0';
++  }
++}
++
+ void update_overlay_metrics(unsigned int idle_tid[kCpuCores], int& current_bank,
+                             char *cpu_temp, size_t cpu_temp_sz, char *cpu_usage,
+                             size_t cpu_usage_sz, char *gpu_temp, size_t gpu_temp_sz,
+@@ -549,8 +816,14 @@ void update_overlay_metrics(unsigned int idle_tid[kCpuCores], int& current_bank,
+   sample_cpu_usage(idle_tid, current_bank, cpu_usage, cpu_usage_sz);
+ 
+   if (g_settings.overlay_ram) {
+-    Get_Page_Table_Stats(kVmSystem, kPageTableRam, &RAM.Used, &RAM.Free, &RAM.Total);
+-    snprintf(ram_str, ram_sz, "%u MB", RAM.Used);
++    OnionFpsSample mem_sample {};
++    if (onion_fps_read(&mem_sample) == 0 && mem_sample.game_mem_mb > 0) {
++      /* Game process memory (sum of its vm map), from the daemon. */
++      snprintf(ram_str, ram_sz, "%u MB", mem_sample.game_mem_mb);
++    } else {
++      Get_Page_Table_Stats(kVmSystem, kPageTableRam, &RAM.Used, &RAM.Free, &RAM.Total);
++      snprintf(ram_str, ram_sz, "%u MB", RAM.Used);
++    }
+   }
+ 
+   if (g_settings.overlay_gpu) {
+@@ -561,7 +834,11 @@ void update_overlay_metrics(unsigned int idle_tid[kCpuCores], int& current_bank,
+                          &VRAM.Total);
+     VRAM.Percentage =
+         (VRAM.Total > 0) ? ((float)VRAM.Used / (float)VRAM.Total) * 100.0f : 0.f;
+-    snprintf(gpu_usage, gpu_usage_sz, "%.0f%%", VRAM.Percentage);
++    /* NOTE: this is VRAM page-table occupancy, not GPU load. Hide it when the
++     * table reports nothing instead of showing a constant, misleading 0%. */
++    (void)VRAM.Percentage;
++    (void)gpu_usage_sz;
++    gpu_usage[0] = '\0'; /* no GPU-load source known; hide instead of a fake 0% */
+   }
+ 
+   if (g_settings.overlay_ip)
+@@ -598,6 +875,9 @@ void OnRender_Hook(MonoObject* instance) {
+   /* UI thread: one NPXS40002 reload covers display TIDs and top-nav patch. */
+   shellui_poll_home_reload();
+ 
++  /* Remote screenshot trigger (Pi writes /system_tmp/onionhen/screenshot_request). */
++  shellui_poll_screenshot_request();
++
+   static bool inited = false;
+   static unsigned int idle_thread_id[kCpuCores] = {};
+   static int current_bank = 0;
+@@ -612,6 +892,7 @@ void OnRender_Hook(MonoObject* instance) {
+   static char ip_address[64] = {};
+   static char fan_str[32] = "--%";
+   static char fps_str[16] = "--";
++  static char dbg_str[80] = {};
+ 
+   if (!inited) {
+     if (frames_until_init > 0) {
+@@ -642,6 +923,7 @@ void OnRender_Hook(MonoObject* instance) {
+       format_fps_text(fps_str, sizeof(fps_str));
+     else
+       fps_str[0] = '\0';
++    format_dbg_text(dbg_str, sizeof(dbg_str));
+     layout_bar_labels(
+         g_settings.overlay_fps ? fps_str : nullptr,
+         (g_settings.overlay_cpu || g_settings.all_cpu_usage) ? cpu_temp
+@@ -652,7 +934,8 @@ void OnRender_Hook(MonoObject* instance) {
+         g_settings.overlay_gpu ? gpu_usage : nullptr,
+         g_settings.overlay_ram ? ram_str : nullptr,
+         g_settings.overlay_ip ? ip_address : nullptr,
+-        g_settings.overlay_fan ? fan_str : nullptr);
++        g_settings.overlay_fan ? fan_str : nullptr,
++        dbg_str[0] ? dbg_str : nullptr);
+     frames_until_fps = kFpsUpdateIntervalFrames;
+   } else {
+     frames_until_fps--;
+diff --git a/source/shellui/src/shellui_overlay_widgets.cpp b/source/shellui/src/shellui_overlay_widgets.cpp
+index 8051f88..762cd57 100644
+--- a/source/shellui/src/shellui_overlay_widgets.cpp
++++ b/source/shellui/src/shellui_overlay_widgets.cpp
+@@ -88,6 +88,8 @@ constexpr float kNetR = 128.0f / 255.0f, kNetG = 179.0f / 255.0f, kNetB = 1.0f;
+ constexpr float kFanR = 51.0f / 255.0f, kFanG = 224.0f / 255.0f, kFanB = 1.0f;
+ /* color_perf = FFE600FF — yellow (FPS) */
+ constexpr float kFpsR = 1.0f, kFpsG = 230.0f / 255.0f, kFpsB = 0.0f;
++/* color_dbg  = FF8080FF — salmon (probe / debug group) */
++constexpr float kDbgR = 1.0f, kDbgG = 128.0f / 255.0f, kDbgB = 128.0f / 255.0f;
+ /* color_value = FFFFFFFF */
+ constexpr float kValR = 1.0f, kValG = 1.0f, kValB = 1.0f;
+ /* Separator pipe — soft white so it does not compete with values. */
+@@ -163,6 +165,15 @@ void append_fan(std::vector<WidgetConfig> &out) {
+   append_sep(out, "id_fan_sep", x + kVal0 + 56.0f, y);
+ }
+ 
++/* Debug probe group: text comes from the daemon (debug_probes.txt). */
++void append_dbg(std::vector<WidgetConfig> &out) {
++  const float x = g_overlay_layout.overlay_fan_x;
++  const float y = g_overlay_layout.overlay_fan_y;
++  push_label(out, "id_dbg_label", x + kLbl, y, "DBG", kDbgR, kDbgG, kDbgB);
++  push_label(out, "id_dbg_value", x + kVal0, y, "", kValR, kValG, kValB);
++  append_sep(out, "id_dbg_sep", x + kVal0 + 56.0f, y);
++}
++
+ const std::vector<const char *> kAllOverlayNames = {
+     kBgPanelName,
+     "id_fps_label",      "id_fps_value",       "id_fps_sep",
+@@ -172,6 +183,7 @@ const std::vector<const char *> kAllOverlayNames = {
+     "id_ram_label",      "id_ram_value",       "id_ram_sep",
+     "id_ip_label",       "id_ip_value",        "id_ip_sep",
+     "id_fan_label",      "id_fan_value",       "id_fan_sep",
++    "id_dbg_label",      "id_dbg_value",       "id_dbg_sep",
+ };
+ 
+ MonoObject *find_root_widget() {
+@@ -324,6 +336,9 @@ void RemoveGameWidget(RemoveWidget widget) {
+   case REMOVE_FPS_OVERLAY:
+     removeWidgets({"id_fps_label", "id_fps_value", "id_fps_sep"});
+     break;
++  case REMOVE_DBG_OVERLAY:
++    removeWidgets({"id_dbg_label", "id_dbg_value", "id_dbg_sep"});
++    break;
+   case REMOVE_ALL_OVERLAYS:
+     removeWidgets(kAllOverlayNames);
+     break;
+@@ -369,6 +384,9 @@ bool CreateGameWidget(CreateWidget widget) {
+   case CREATE_FPS_OVERLAY:
+     append_fps(configs);
+     break;
++  case CREATE_DBG_OVERLAY:
++    append_dbg(configs);
++    break;
+   case CREATE_ALL_OVERLAYS:
+     append_fps(configs);
+     append_cpu(configs);
+@@ -376,6 +394,7 @@ bool CreateGameWidget(CreateWidget widget) {
+     append_ram(configs);
+     append_ip(configs);
+     append_fan(configs);
++    append_dbg(configs);
+     break;
+   }
+ 
+diff --git a/source/util/source/cheats/cheat_applier.cpp b/source/util/source/cheats/cheat_applier.cpp
+index 81ff370..e018c47 100644
+--- a/source/util/source/cheats/cheat_applier.cpp
++++ b/source/util/source/cheats/cheat_applier.cpp
+@@ -261,8 +261,23 @@ int CheatApplier::toggle(const game_context_t &game, onion_cheat_file_t &file,
+     snapshot.bytes.resize(reserve_len);
+     if (backend->read(pid, snapshot.address, snapshot.bytes.data(),
+                       snapshot.bytes.size()) < 0) {
+-      status = status_tr("notify.cheats.snapshot_failed", entry.name);
+-      return -1;
++      /* Execute-only (XOM) pages cannot be pre-read. Remap the page RWX
++       * (the same fallback the verify step uses) and retry; if that also
++       * fails and the JSON supplies the full off bytes, use those as the
++       * rollback snapshot instead of aborting. */
++      bool snapshot_ok = false;
++      if (backend->mapCodeCave(pid, patch.address, reserve_len) == 0 &&
++          backend->read(pid, snapshot.address, snapshot.bytes.data(),
++                        snapshot.bytes.size()) >= 0) {
++        snapshot_ok = true;
++      } else if (patch.patch != nullptr && patch.off_len == reserve_len) {
++        std::memcpy(snapshot.bytes.data(), patch.patch->off, reserve_len);
++        snapshot_ok = true;
++      }
++      if (!snapshot_ok) {
++        status = status_tr("notify.cheats.snapshot_failed", entry.name);
++        return -1;
++      }
+     }
+     snapshots.push_back(std::move(snapshot));
+   }
+diff --git a/source/util/source/cheats/cheat_service.cpp b/source/util/source/cheats/cheat_service.cpp
+index f69cda8..b09c96c 100644
+--- a/source/util/source/cheats/cheat_service.cpp
++++ b/source/util/source/cheats/cheat_service.cpp
+@@ -10,6 +10,8 @@
+ #include <cctype>
+ #include <cstdlib>
+ #include <cstring>
++#include <cerrno>
++#include <csignal>
+ #include <fstream>
+ #include <set>
+ 
+@@ -205,6 +207,56 @@ int CheatService::ensureRuntimeLocked(const CheatRequest &request) {
+            next->session_id.c_str(), request.game.title_id.c_str(),
+            static_cast<int>(requested.pid), next->files.size());
+   runtime_ = std::move(next);
++
++  /* Auto-apply mods whose JSON marks them "enabled": true. This runs at
++   * session start — the game process has just exec'd but has not run its
++   * initialization yet, which is the timing patch-style cheats (framerate
++   * unlocks etc.) require. Mid-run toggling of those crashes games.
++   * The process is suspended for the duration: a partially patched frame
++   * loop crashes the title the moment it executes it. */
++  bool auto_applied_any = false;
++  for (const auto &loaded : runtime_->files) {
++    for (size_t i = 0; i < loaded->file.cheat_count; ++i) {
++      if (loaded->file.cheats[i].enabled) {
++        auto_applied_any = true;
++        break;
++      }
++    }
++    if (auto_applied_any) {
++      break;
++    }
++  }
++  const pid_t game_pid = runtime_->process.pid;
++  const bool frozen = auto_applied_any && ::kill(game_pid, SIGSTOP) == 0;
++  if (auto_applied_any && !frozen) {
++    LOG_WARN("[service] auto-apply could not suspend pid=%d errno=%d",
++             static_cast<int>(game_pid), errno);
++  }
++  for (const auto &loaded : runtime_->files) {
++    for (size_t i = 0; i < loaded->file.cheat_count; ++i) {
++      auto &entry = loaded->file.cheats[i];
++      if (!entry.enabled) {
++        continue;
++      }
++      entry.enabled = false;
++      std::string status;
++      if (runtime_->applier.toggle(runtime_->context, loaded->file,
++                                   static_cast<int>(i), status,
++                                   loaded->path) < 0) {
++        LOG_ERROR("[service] auto-apply failed %s index=%zu (%s): %s",
++                  loaded->path.c_str(), i, entry.name, status.c_str());
++        entry.enabled = false;
++      } else {
++        LOG_INFO("[Cheat] auto-applied '%s' (%s)", entry.name,
++                 loaded->path.c_str());
++      }
++    }
++  }
++  if (frozen) {
++    ::kill(game_pid, SIGCONT);
++    LOG_INFO("[service] auto-apply complete, resumed pid=%d",
++             static_cast<int>(game_pid));
++  }
+   return 0;
+ }
+ 
+diff --git a/source/util/source/cheats/json_cheat_parser.cpp b/source/util/source/cheats/json_cheat_parser.cpp
+index 7022a7a..5d48d51 100644
+--- a/source/util/source/cheats/json_cheat_parser.cpp
++++ b/source/util/source/cheats/json_cheat_parser.cpp
+@@ -65,6 +65,14 @@ bool parseModObject(const cJSON *object, const char *process_name,
+   std::snprintf(entry->module_name, sizeof(entry->module_name), "%s",
+                 process_name);
+ 
++  /* Optional per-mod "enabled": true marks the mod for auto-apply at
++   * session start (game exec time). Absent field keeps runtime toggling
++   * only, so existing cheat files are unaffected. */
++  const cJSON *enabled = onion_cjson::item(object, "enabled");
++  if (enabled && cJSON_IsBool(enabled)) {
++    entry->enabled = cJSON_IsTrue(enabled);
++  }
++
+   const cJSON *memory = onion_cjson::item(object, "memory");
+   if (!memory) {
+     return true;
+diff --git a/source/util/source/cheats/memory_backends.cpp b/source/util/source/cheats/memory_backends.cpp
+index f59e805..f1c0a5c 100644
+--- a/source/util/source/cheats/memory_backends.cpp
++++ b/source/util/source/cheats/memory_backends.cpp
+@@ -30,31 +30,15 @@ int mapCodeCaveCommon(pid_t pid, uint64_t addr, size_t len) {
+   const uint64_t page_end = pageAlignUp(addr + len);
+   const size_t page_len = static_cast<size_t>(page_end - page_start);
+ 
+-  if (pt_attach_proc(pid) < 0) {
+-    LOG_ERROR("[Cheat] code cave attach failed pid=%d errno=%d", pid,
+-                 errno);
+-    return -1;
+-  }
+-
+-  const intptr_t mapped =
+-      pt_mmap(pid, static_cast<intptr_t>(page_start), page_len,
+-              PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+-  if (mapped != static_cast<intptr_t>(page_start)) {
+-    LOG_ERROR("[Cheat] code cave mmap failed page=0x%llx ret=0x%llx",
+-                 (unsigned long long)page_start, (unsigned long long)mapped);
+-    pt_detach_proc(pid, 0);
+-    return -1;
+-  }
+-
++  /* Unprotect the existing page (XOM -> RWX) in place. Never replace the
++   * mapping with an anonymous one: that zeroes the page and destroys the
++   * surrounding game code, crashing the title when it executes it. */
+   if (kernel_mprotect(pid, page_start, page_len,
+                       PROT_READ | PROT_WRITE | PROT_EXEC) < 0) {
+-    LOG_ERROR("[Cheat] code cave mprotect failed page=0x%llx",
++    LOG_ERROR("[Cheat] page unprotect failed page=0x%llx",
+                  (unsigned long long)page_start);
+-    pt_detach_proc(pid, 0);
+     return -1;
+   }
+-
+-  pt_detach_proc(pid, 0);
+   return 0;
+ }
+ 

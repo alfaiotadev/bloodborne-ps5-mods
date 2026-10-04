@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare screenshots - Bloodborne PS5 mods</title>
+<meta name="description" content="Lightweight before/after comparison of the Bloodborne PS5 mods: slider, blink and difference view on small 1:1 crops. Tested only on a PS5 Pro, firmware 12.40.">
+<meta name="theme-color" content="#0e1014">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="assets/cmp/data.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the comparison tool</a>
+
+<div class="topnote" role="note">Tested only on a PS5 Pro, firmware 12.40. Base PS5 and other firmware: unknown. Use at your own risk. You must own the game. <a href="index.html#disclaimer">Read the full notice</a>.</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Bloodborne PS5 mods</a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        <li><a href="index.html#features">Features</a></li>
+        <li><a href="index.html#install">Install</a></li>
+        <li><a href="compare.html" aria-current="page">Compare</a></li>
+        <li><a href="index.html#gallery">Gallery</a></li>
+        <li><a href="index.html#docs">Docs</a></li>
+        <li><a href="index.html#credits">Credits</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section>
+  <div class="wrap wide">
+    <h1>Compare screenshots</h1>
+    <p class="lead">Before and after, at the pixel level. Pick a feature and a scene, then drag the slider, blink between two states or open the difference view. Only the two images you look at are downloaded (about 100 KB each).</p>
+
+    <noscript>
+      <p class="nojs-note">The comparison tool needs JavaScript. Without it you can still open the individual images in <code>assets/cmp/</code>, or read the <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/docs/features.md">feature reference</a>.</p>
+    </noscript>
+
+    <div id="cmp" class="cmp">
+      <div class="cmp-controls" role="group" aria-label="Choose what to compare">
+        <label class="field">Feature
+          <select id="cmp-set"></select>
+        </label>
+        <label class="field">Scene
+          <select id="cmp-scene"></select>
+        </label>
+        <label class="field">View
+          <select id="cmp-mode"></select>
+        </label>
+        <label class="field">Image A
+          <select id="cmp-a"></select>
+        </label>
+        <label class="field">Image B
+          <select id="cmp-b"></select>
+        </label>
+        <label class="field hidden" id="f-c">Image C
+          <select id="cmp-c"></select>
+        </label>
+        <label class="field hidden" id="f-d">Image D
+          <select id="cmp-d"></select>
+        </label>
+      </div>
+
+      <div class="cmp-stage">
+        <div class="cmp-viewer" id="cmp-viewer">
+          <canvas id="cmp-canvas" tabindex="0" role="img" aria-label="Image comparison" aria-describedby="cmp-keys"></canvas>
+          <div class="cmp-status" id="cmp-status" role="status" aria-live="polite">Loading...</div>
+        </div>
+      </div>
+
+      <div class="cmp-bar" role="group" aria-label="Viewer settings">
+        <label class="field" id="f-split"><span>Slider position (share of the image showing B)</span>
+          <input type="range" id="cmp-split" min="0" max="100" value="50">
+        </label>
+        <label class="field hidden" id="f-rate"><span>Blink interval</span>
+          <select id="cmp-rate">
+            <option value="400">0.4 s</option>
+            <option value="800" selected>0.8 s</option>
+            <option value="1500">1.5 s</option>
+          </select>
+        </label>
+        <div class="field hidden" id="f-blink">Blink control
+          <div class="btn-row">
+            <button type="button" id="cmp-pause" aria-pressed="false">Pause blink</button>
+            <button type="button" id="cmp-flip">Switch image</button>
+          </div>
+        </div>
+        <label class="field hidden" id="f-gain"><span>Gain: <span id="cmp-gain-val">8</span>x</span>
+          <input type="range" id="cmp-gain" min="1" max="40" value="8">
+        </label>
+        <label class="field hidden" id="f-floor"><span>Noise floor: <span id="cmp-floor-val">6</span> levels</span>
+          <input type="range" id="cmp-floor" min="0" max="30" value="6">
+        </label>
+        <div class="field">Zoom
+          <div class="btn-row">
+            <button type="button" id="cmp-zoom-fit">Fit</button>
+            <button type="button" id="cmp-zoom-1">100%</button>
+            <button type="button" id="cmp-zoom-2">200%</button>
+            <button type="button" id="cmp-zoom-4">400%</button>
+          </div>
+        </div>
+        <p class="small" id="cmp-zoom-label" style="margin:0" aria-live="off"></p>
+      </div>
+      <p class="visually-hidden" id="cmp-sr" aria-live="polite"></p>
+
+      <div class="cmp-info">
+        <div>
+          <h2 id="cmp-title">Scene</h2>
+          <p id="cmp-desc"></p>
+          <p><strong>What to look at:</strong> <span id="cmp-hint"></span></p>
+          <h3>Images in this scene</h3>
+          <ul class="state-list" id="cmp-states"></ul>
+          <p class="small" id="cmp-stats" role="status"></p>
+          <p class="small" id="cmp-loaded"></p>
+        </div>
+        <div>
+          <div class="verdict">
+            <h3 id="cmp-verdict-title">What to expect</h3>
+            <div id="cmp-verdict"></div>
+          </div>
+          <div id="cmp-keys" class="keys" style="margin-top:1rem">
+            <h3>Controls</h3>
+            <ul>
+              <li>Slider: drag anywhere on the image, or use <kbd>Left</kbd> and <kbd>Right</kbd> (hold <kbd>Shift</kbd> for bigger steps) while the image has focus.</li>
+              <li>Blink: <kbd>Space</kbd> pauses or resumes. With reduced motion enabled in your system, blinking starts paused; use Switch image.</li>
+              <li>Zoom: the buttons, <kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>, or Ctrl/Cmd and the mouse wheel. Drag to pan when zoomed, double-click to fit.</li>
+              <li>Keys <kbd>1</kbd> to <kbd>4</kbd> pick image B. The address bar updates, so you can share a link to the exact view.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <details class="method">
+        <summary>How these images were made, and what the difference view means</summary>
+        <ul>
+          <li>All images of one scene come from one capture session with the character and the camera pose locked, taken with the console's own screenshot function at 3840x2160. The game renders at 1080p, so each screenshot was reduced 2x with a box filter back to the game's native resolution, and the crops here are 1:1 game pixels (full frames for the field-of-view and camera scenes are scaled to 1280x720).</li>
+          <li>Images are lossy WebP (quality 80), cropped to about 960x540. This keeps each image near 100 KB, but it adds compression noise of its own. The difference view therefore has a noise floor control: differences smaller than the floor are ignored. Treat the percentages as approximate.</li>
+          <li>The difference view is computed in your browser from the two decoded images (brightness only, absolute difference, multiplied by the gain). Moving objects such as foliage and the character idle animation also show up as differences. They are not caused by the mod.</li>
+          <li>Different scenes were captured in different sessions. Only compare images inside one scene.</li>
+          <li>When a scene shows no visible difference, that is a real result and is stated next to it. We do not retouch or select frames to look better.</li>
+        </ul>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="legal"><em>Bloodborne</em> is a trademark of Sony Interactive Entertainment and FromSoftware. This project is not affiliated with or endorsed by Sony Interactive Entertainment, FromSoftware, onionHEN, Lance McDonald or any other party named on this site. The screenshots are small crops of the running game, shown for comparison. Licensed under <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods/blob/main/LICENSE">GPL-3.0</a>.</p>
+    <p><a href="index.html">Back to the main page</a> &middot; <a href="https://github.com/alfaiotadev/bloodborne-ps5-mods">Source on GitHub</a></p>
+  </div>
+</footer>
+</body>
+</html>

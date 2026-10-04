@@ -1,0 +1,14 @@
+{
+ "example_scene": {
+  "map": 0,
+  "player_pos": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "player_yaw": 0.0,
+  "cam": "0000803f000000000000000000000000000000000000803f000000000000000000000000000000000000803f000000000000000000000000000000000000803f",
+  "note": "PLACEHOLDER - replace by recording a real scene in-game: scene.py record <name> [note...]",
+  "recorded": "1970-01-01 00:00:00"
+ }
+}

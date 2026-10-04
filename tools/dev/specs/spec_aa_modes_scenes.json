@@ -1,0 +1,264 @@
+{
+ "hold": 4,
+ "shot_delay": 2,
+ "toast": false,
+ "warmup": 1,
+ "scene_wait": 5,
+ "scenes": [
+  "sickroom_fences_aa",
+  "ladder_top_horizon",
+  "bridge_end_cobblestone"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "sequence": [
+  "DLAA game (lam 2.44)",
+  "AA off",
+  "FXAA",
+  "FXAA3",
+  "FXAA3 HQ",
+  "DLAA local = game",
+  "DLAA lam 4",
+  "DLAA lam 1",
+  "DLAA thr 0.05",
+  "DLAA thr 0.3",
+  "DLAA game (lam 2.44)"
+ ],
+ "states": {
+  "DLAA game (lam 2.44)": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 0
+   }
+  ],
+  "AA off": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 0
+   }
+  ],
+  "FXAA": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 0
+   }
+  ],
+  "FXAA3": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 1
+   }
+  ],
+  "FXAA3 HQ": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 2
+   }
+  ],
+  "DLAA local = game": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA lam 4": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 4.0
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA lam 1": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 1.0
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.05": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.05
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ],
+  "DLAA thr 0.3": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0xc",
+    "fmt": "I",
+    "val": 3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x28",
+    "fmt": "f",
+    "val": 0.3
+   },
+   {
+    "addr": "vtall:0x56e7980+0x2c",
+    "fmt": "f",
+    "val": 2.44
+   },
+   {
+    "addr": "vtall:0x56e7980+0x30",
+    "fmt": "f",
+    "val": 0.25
+   }
+  ]
+ }
+}

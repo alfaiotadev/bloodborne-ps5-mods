@@ -1,0 +1,32 @@
+{
+ "hold": 20,
+ "sequence": [
+  "DOF normal",
+  "DOF OFF (code patch)",
+  "DOF normal",
+  "DOF OFF (code patch)"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "states": {
+  "DOF normal": [
+   {
+    "addr": "0x25d7a8b",
+    "fmt": "x",
+    "val": "0f95c0"
+   }
+  ],
+  "DOF OFF (code patch)": [
+   {
+    "addr": "0x25d7a8b",
+    "fmt": "x",
+    "val": "31c090"
+   }
+  ]
+ }
+}

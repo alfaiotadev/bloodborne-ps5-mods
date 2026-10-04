@@ -1,0 +1,32 @@
+{
+ "hold": 20,
+ "sequence": [
+  "AA normal (off)",
+  "AA forced (FXAA)",
+  "AA normal (off)",
+  "AA forced (FXAA)"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "states": {
+  "AA normal (off)": [
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "0f95c0"
+   }
+  ],
+  "AA forced (FXAA)": [
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   }
+  ]
+ }
+}

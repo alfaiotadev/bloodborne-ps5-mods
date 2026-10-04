@@ -1,0 +1,47 @@
+{
+ "hold": 14,
+ "sequence": [
+  "FOV normal",
+  "FOV x1.3 (56 degrees)",
+  "FOV normal",
+  "FOV x1.6 (69 degrees)"
+ ],
+ "fixed": [],
+ "restore_first": [
+  "0x183af5a"
+ ],
+ "states": {
+  "FOV normal": [
+   {
+    "addr": "0x183af5a",
+    "fmt": "x",
+    "val": "faae4e03"
+   }
+  ],
+  "FOV x1.3 (56 degrees)": [
+   {
+    "addr": "0x54a0500",
+    "fmt": "x",
+    "val": "dfdeb93c"
+   },
+   {
+    "addr": "0x183af5a",
+    "fmt": "x",
+    "val": "a255c603"
+   }
+  ],
+  "FOV x1.6 (69 degrees)": [
+   {
+    "addr": "0x54a0500",
+    "fmt": "x",
+    "val": "88c3e43c"
+   },
+   {
+    "addr": "0x183af5a",
+    "fmt": "x",
+    "val": "a255c603"
+   }
+  ]
+ },
+ "shot_delay": 7
+}

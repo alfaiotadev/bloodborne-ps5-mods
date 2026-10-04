@@ -1,0 +1,849 @@
+{
+ "game": {
+  "name": "Bloodborne: Game of the Year Edition",
+  "id": "CUSA03173",
+  "version": "01.09",
+  "process": "eboot.bin"
+ },
+ "mods": [
+  {
+   "name": "60 FPS (Lance McDonald)",
+   "type": "checkbox",
+   "enabled": true,
+   "memory": [
+    {
+     "offset": "00FBC40F",
+     "on": "eb1d",
+     "off": "7f1d",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E16",
+     "on": "eb19",
+     "off": "f645",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E18",
+     "on": "4156",
+     "off": "c820",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E1A",
+     "on": "41c746080000003f",
+     "off": "7515488d159d4f76",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E22",
+     "on": "c4c17a5e4608",
+     "off": "0331ffbe3e00",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E28",
+     "on": "415e",
+     "off": "0000",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E2A",
+     "on": "e933070000",
+     "off": "31c0e87f27",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E2F",
+     "on": "90",
+     "off": "0e",
+     "absolute": true
+    },
+    {
+     "offset": "013D2E30",
+     "on": "90",
+     "off": "01",
+     "absolute": true
+    },
+    {
+     "offset": "013D3557",
+     "on": "c4c17a104608",
+     "off": "4885ff740bc4",
+     "absolute": true
+    },
+    {
+     "offset": "013D355D",
+     "on": "e9b6f8ffff",
+     "off": "c17a104608",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B71",
+     "on": "e933010000",
+     "off": "c745b88988",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B76",
+     "on": "90",
+     "off": "08",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9B77",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CA9",
+     "on": "488d054868d403",
+     "off": "488d3d22751303",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB0",
+     "on": "488b00",
+     "off": "488d35",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB3",
+     "on": "8b8064020000",
+     "off": "c5751303488d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CB9",
+     "on": "8945b8",
+     "off": "0d2576",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBC",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBD",
+     "on": "90",
+     "off": "03",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBE",
+     "on": "90",
+     "off": "ba",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CBF",
+     "on": "90",
+     "off": "3b",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC0",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC1",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC2",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC3",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC4",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC5",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC6",
+     "on": "90",
+     "off": "9e",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC7",
+     "on": "90",
+     "off": "4c",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC8",
+     "on": "90",
+     "off": "3c",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CC9",
+     "on": "90",
+     "off": "01",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCA",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCB",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCC",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCD",
+     "on": "90",
+     "off": "29",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCE",
+     "on": "90",
+     "off": "76",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CCF",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD0",
+     "on": "90",
+     "off": "03",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD1",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "01BF9CD2",
+     "on": "e9a1feffff",
+     "off": "d24e3c01cc",
+     "absolute": true
+    },
+    {
+     "offset": "020367C7",
+     "on": "488d351cd2c702",
+     "off": "488d350ec5d902",
+     "absolute": true
+    },
+    {
+     "offset": "020369E8",
+     "on": "488d35b5cfc702",
+     "off": "488d35edc2d902",
+     "absolute": true
+    },
+    {
+     "offset": "021BC181",
+     "on": "488d3d70437803",
+     "off": "488d3de1f1b702",
+     "absolute": true
+    },
+    {
+     "offset": "021BC188",
+     "on": "488b3f",
+     "off": "488d15",
+     "absolute": true
+    },
+    {
+     "offset": "021BC18B",
+     "on": "c5fa598764020000",
+     "off": "2ef2b702488d0df1",
+     "absolute": true
+    },
+    {
+     "offset": "021BC193",
+     "on": "90",
+     "off": "94",
+     "absolute": true
+    },
+    {
+     "offset": "021BC194",
+     "on": "90",
+     "off": "b7",
+     "absolute": true
+    },
+    {
+     "offset": "021BC195",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "021BC196",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "021BC197",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "021BC198",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC199",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19A",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19B",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19C",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "021BC19D",
+     "on": "e96e010000",
+     "off": "e80e942f00",
+     "absolute": true
+    },
+    {
+     "offset": "021BC308",
+     "on": "e974feffff",
+     "off": "c5fa590588",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30D",
+     "on": "90",
+     "off": "cb",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30E",
+     "on": "90",
+     "off": "b6",
+     "absolute": true
+    },
+    {
+     "offset": "021BC30F",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02377CEA",
+     "on": "eb24",
+     "off": "7524",
+     "absolute": true
+    },
+    {
+     "offset": "02377CEC",
+     "on": "488d1d05885c03",
+     "off": "488d3d76369c02",
+     "absolute": true
+    },
+    {
+     "offset": "02377CF3",
+     "on": "488b1b",
+     "off": "488d15",
+     "absolute": true
+    },
+    {
+     "offset": "02377CF6",
+     "on": "c5fa108364020000",
+     "off": "c3369c02488d0de0",
+     "absolute": true
+    },
+    {
+     "offset": "02377CFE",
+     "on": "90",
+     "off": "34",
+     "absolute": true
+    },
+    {
+     "offset": "02377CFF",
+     "on": "90",
+     "off": "9c",
+     "absolute": true
+    },
+    {
+     "offset": "02377D00",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02377D01",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "02377D02",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "02377D03",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D04",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D05",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D06",
+     "on": "90",
+     "off": "31",
+     "absolute": true
+    },
+    {
+     "offset": "02377D07",
+     "on": "90",
+     "off": "c0",
+     "absolute": true
+    },
+    {
+     "offset": "02377D08",
+     "on": "90",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "02377D09",
+     "on": "90",
+     "off": "a3",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0A",
+     "on": "90",
+     "off": "d8",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0B",
+     "on": "90",
+     "off": "13",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0C",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0D",
+     "on": "90",
+     "off": "49",
+     "absolute": true
+    },
+    {
+     "offset": "02377D0E",
+     "on": "eb42",
+     "off": "8b07",
+     "absolute": true
+    },
+    {
+     "offset": "02377D48",
+     "on": "eba2",
+     "off": "7508",
+     "absolute": true
+    },
+    {
+     "offset": "02418E3D",
+     "on": "8b8364020000",
+     "off": "488d05cc7652",
+     "absolute": true
+    },
+    {
+     "offset": "02418E43",
+     "on": "8945c8",
+     "off": "034883",
+     "absolute": true
+    },
+    {
+     "offset": "02418E46",
+     "on": "90",
+     "off": "38",
+     "absolute": true
+    },
+    {
+     "offset": "02418E47",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E48",
+     "on": "90",
+     "off": "75",
+     "absolute": true
+    },
+    {
+     "offset": "02418E49",
+     "on": "90",
+     "off": "21",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4A",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4B",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4C",
+     "on": "90",
+     "off": "3d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4D",
+     "on": "90",
+     "off": "18",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4E",
+     "on": "90",
+     "off": "25",
+     "absolute": true
+    },
+    {
+     "offset": "02418E4F",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E50",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E51",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E52",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E53",
+     "on": "90",
+     "off": "15",
+     "absolute": true
+    },
+    {
+     "offset": "02418E54",
+     "on": "90",
+     "off": "65",
+     "absolute": true
+    },
+    {
+     "offset": "02418E55",
+     "on": "90",
+     "off": "25",
+     "absolute": true
+    },
+    {
+     "offset": "02418E56",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E57",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E58",
+     "on": "90",
+     "off": "48",
+     "absolute": true
+    },
+    {
+     "offset": "02418E59",
+     "on": "90",
+     "off": "8d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5A",
+     "on": "90",
+     "off": "0d",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5B",
+     "on": "90",
+     "off": "29",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5C",
+     "on": "90",
+     "off": "24",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5D",
+     "on": "90",
+     "off": "92",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5E",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02418E5F",
+     "on": "90",
+     "off": "be",
+     "absolute": true
+    },
+    {
+     "offset": "02418E60",
+     "on": "90",
+     "off": "b1",
+     "absolute": true
+    },
+    {
+     "offset": "02418E61",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E62",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E63",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02418E64",
+     "on": "488d05a5765203",
+     "off": "31c0e845c70900",
+     "absolute": true
+    },
+    {
+     "offset": "0243487E",
+     "on": "41c74424188988883c",
+     "off": "41c74424188988083d",
+     "absolute": true
+    },
+    {
+     "offset": "02434887",
+     "on": "48b90000000001000000",
+     "off": "48b9000000001e000000",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC1",
+     "on": "c3",
+     "off": "e8",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC2",
+     "on": "90",
+     "off": "a2",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC3",
+     "on": "90",
+     "off": "ce",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC4",
+     "on": "90",
+     "off": "b3",
+     "absolute": true
+    },
+    {
+     "offset": "02483EC5",
+     "on": "90",
+     "off": "00",
+     "absolute": true
+    },
+    {
+     "offset": "02715D71",
+     "on": "e881090000",
+     "off": "c5fa1025fb",
+     "absolute": true
+    },
+    {
+     "offset": "02715D76",
+     "on": "90",
+     "off": "40",
+     "absolute": true
+    },
+    {
+     "offset": "02715D77",
+     "on": "90",
+     "off": "61",
+     "absolute": true
+    },
+    {
+     "offset": "02715D78",
+     "on": "90",
+     "off": "02",
+     "absolute": true
+    },
+    {
+     "offset": "02FBF178",
+     "on": "4831c0c3",
+     "off": "ff25725b",
+     "absolute": true
+    }
+   ]
+  },
+  {
+   "name": "No Motion Blur",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "026A057B",
+     "on": "eb16",
+     "off": "7416",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "No Chromatic Aberration",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "0269FAA8",
+     "on": "c783ac000000000000009090",
+     "off": "8b8590f5ffff8983ac000000",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "Skip Intro Logos",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "04D99138",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    },
+    {
+     "offset": "04D99154",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    },
+    {
+     "offset": "04D9916E",
+     "on": "00000000",
+     "off": "4c006f00",
+     "absolute": true
+    }
+   ],
+   "enabled": true
+  },
+  {
+   "name": "DLC Save Requirement Unlock",
+   "type": "checkbox",
+   "memory": [
+    {
+     "offset": "023B67B3",
+     "on": "49C7460801010101",
+     "off": "49c7460800000000",
+     "absolute": true
+    }
+   ],
+   "enabled": false
+  }
+ ]
+}

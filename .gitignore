@@ -1,0 +1,22 @@
+# secrets and local configuration
+.env
+*.env
+.env.*
+# python
+__pycache__/
+*.pyc
+# local work/output of the dev tools
+work/
+tools/dev/work/
+*.jxr
+# game data must never be committed
+*.bin
+*.elf
+*.dump
+*.pkg
+dumps/
+artifacts/
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,291 @@
+{
+ "note": "Contains game-session heap address(es) 0x22a848185, 0x22a848670, 0x22a848674 that are only valid for one run of the game: re-resolve them (e.g. with yebis_probe.py / find_vtable_instances.py) or use vt:/vtall: addresses before running.",
+ "hold": 4,
+ "shot_delay": 2.5,
+ "toast": false,
+ "warmup": 1,
+ "scene_wait": 5,
+ "scenes": [
+  "ladder_top_horizon",
+  "sickroom_fences_aa",
+  "bridge_end_cobblestone"
+ ],
+ "fixed": [
+  {
+   "addr": "vt:0x57b9080+0x5c6",
+   "fmt": "B",
+   "val": 1
+  }
+ ],
+ "sequence": [
+  "DLAA game",
+  "FXAA2 (DLAA off)",
+  "FXAA2 falloff 10-60",
+  "FXAA2 falloff 3-15",
+  "FXAA2 falloff 30-300",
+  "DLAA + FXAA2 falloff 10-60",
+  "DLAA game"
+ ],
+ "states": {
+  "DLAA game": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "0f95c0"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 0.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 0.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ],
+  "FXAA2 (DLAA off)": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 0.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 0.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ],
+  "FXAA2 falloff 10-60": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 10.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 60.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ],
+  "FXAA2 falloff 3-15": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 3.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 15.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ],
+  "FXAA2 falloff 30-300": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 1
+   },
+   {
+    "addr": "vtall:0x56e7980+0x9",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 30.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 300.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ],
+  "DLAA + FXAA2 falloff 10-60": [
+   {
+    "addr": "vtall:0x56e7980+0x8",
+    "fmt": "B",
+    "val": 0
+   },
+   {
+    "addr": "0x25d8034",
+    "fmt": "x",
+    "val": "b00190"
+   },
+   {
+    "addr": "0x22a848670",
+    "fmt": "f",
+    "val": 10.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848674",
+    "fmt": "f",
+    "val": 60.0,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ]
+   },
+   {
+    "addr": "0x22a848185",
+    "fmt": "B",
+    "val": 1,
+    "check": [
+     "0x5865ed0",
+     "0x22a847ab0"
+    ],
+    "noverify": true
+   }
+  ]
+ }
+}
