@@ -4,7 +4,7 @@ All notable changes to this repository. Dates are release dates; the versions fo
 
 > **Tested only on firmware 12.40 with a PS5 Pro.** See [docs/compatibility.md](docs/compatibility.md).
 
-## [1.1.0] - 2026-10-04
+## [1.1.0] - 2026-10-05
 
 The FPS head camera now handles dying. Everything new is part of the `_fps` profile (and optional in the cheat menu); the stable mods are unchanged.
 
