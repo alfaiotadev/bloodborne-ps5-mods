@@ -4,7 +4,7 @@
 Only code patches + a data block at 0x54A0E00; no runtime tool is needed.
 
 CAVES
-  1. MANAGER cave (CAVE_MGR 0x54A1600, 3387 bytes, written as four entries).  Hook 0x1836c54 (5 bytes) in the camera manager update 0x18368b0: the store of the position row
+  1. MANAGER cave (CAVE_MGR 0x54A1600, 3847 bytes, written as four entries).  Hook 0x1836c54 (5 bytes) in the camera manager update 0x18368b0: the store of the position row
      `vmovaps [rbx+0x40],xmm3` after the follow-camera update; rbx = the manager's output pose, xmm0/1/2 = right/up/forward rows, xmm3 = position.  The cave, in this order:
        - PAD: a double-click of the touchpad (two rising edges within 30 frames) toggles MODE.  The DualSense report ring of libScePad (12 x 0xe0 bytes, buttons dword first) is
          found through the game's import slots 0x57E5B30 (-> libScePad+0xa30) and 0x57E4E90 (-> +0x13c0; their distance and the page offset are the layout check - the library's code itself must never be read, it is execute-only); runs even while MODE is 0.
@@ -17,6 +17,8 @@ CAVES
        - 30 Hz POSE: the pose is re-evaluated at 30 Hz in some maps while origin and camera run at 60 Hz; (head - origin) is latched when the array changes, smoothed (ALPHA) and added to
          the current origin.  HMIN keeps the camera from dipping below walking height (rolls).  R/U/F offsets move the eye along the game's camera rows; LIMIT refuses heads that are
          too far from the game's camera (cutscenes, garbage poses).
+       - NEAR (core): if the camera is within sqrt(NEARR2) (3D) of the torso point of a living character (feet + NEARTORSO) - the game puts the player inside the victim during visceral attacks -
+         the override is skipped (the game's camera is used) and stays skipped for NEARHOLD frames; the FACE2 epilogue is suspended meanwhile.
        - DEAD: when the player's HP ([[pl+0x3b0]+0x20]+0xf8) is <= 0 (flag DEADF) there is no HMIN floor and the view rows are rebuilt from the head bone matrix (HA; forward = column 2, up = column 0, right = -column 1),
          eased with DALPHA from the game's last view (FS/US) and orthonormalised; the final camera y is at least origin.y + DFLOOR (0.30 m).  AIM is skipped while dead and the FACE2 epilogue is suspended.
        - KILLER (flag KILLCAM): on the first dead frame the character the view will look at is chosen (the locked-on target, else the nearest living character within 20 m from the WorldChrMan list at +0x1490); from LOCKAT frames after the death
@@ -59,6 +61,7 @@ DEADF, DALPHA, DEPS, HA, FS, US = D + 0x74, D + 0x140, D + 0x144, D + 0x148, D +
 SLOWON, TSCALE, PH1SCALE, PH1END, SLOWG, DCNT = D + 0x77, D + 0x178, D + 0x17C, D + 0x180, D + 0x184, D + 0x188   # death time effect: flag, global character time scale (read by the CAVE_TS hook), phase 1 scale, phase 1 length in frames, easing factor, frames since death
 PH2SCALE, PH2END = D + 0x18C, D + 0x190          # phase 2 time scale and the frame (after the death) at which it ends: phase 1 (PH1SCALE, e.g. 10x) fast-forwards the death animation so that YOU DIED comes at once, phase 2 (PH2SCALE, e.g. 0.1) is slow motion until the load
 KILLER, DEADP, KILLCAM, KCNT, LOCKAT, KRANGE2, KHEIGHT, WORLDUP, DALPHA2, ALPHAUSE = D + 0x198, D + 0x1A0, D + 0x1A1, D + 0x1A4, D + 0x1A8, D + 0x1AC, D + 0x1B0, D + 0x1C0, D + 0x1D0, D + 0x1D4   # killer camera: chosen character (ChrIns*), 'already chosen' flag, flag, frames since the death, frame at which the view turns to it, squared search range, aim height offset, world up, easing factor of that turn, the easing factor in use
+NEARF, NEARC, NEARR2, NEARHOLD, NEARTORSO = D + 0x1D8, D + 0x1DC, D + 0x1E0, D + 0x1E4, D + 0x1F0   # close-character guard (visceral attacks put the player inside the enemy): flag, countdown, squared 3D distance camera-torso, frames to hold the guard, torso offset
 DFLOOR, DFLR = D + 0x170, D + 0x174     # death camera: lowest camera height above the feet (const), and that floor in world y for this frame   # death camera: dead flag (HP <= 0), smoothing alpha, epsilon, head matrix address of this frame, smoothed forward / up
 TR, TU, FPREV = D + 0x118, D + 0x11C, D + 0x120     # camera-space aim offset; last frame's game forward row (16 B)
 DECAY, MOTCOS, TINY = D + 0x130, D + 0x134, D + 0x138
@@ -101,6 +104,7 @@ def build_epilogue():
     A.rip(b"\x80\x3d", FACE2, b"\x00"); A.jcc("e", "orig")                                  # cmp byte [FACE2],0 ; je orig
     A.rip(b"\x80\x3d", MODE, b"\x00"); A.jcc("e", "orig")                                   # cmp byte [MODE],0 ; je orig     only while the head camera is on (third person keeps the normal body)
     A.rip(b"\x80\x3d", DEADF, b"\x00"); A.jcc("ne", "orig")                                # cmp byte [DEADF],0 ; jne orig   not while dead: the displayed body must match the bone matrices the death camera follows
+    A.rip(b"\x80\x3d", NEARF, b"\x00"); A.jcc("ne", "orig")                                # cmp byte [NEARF],0 ; jne orig   not while the game's camera is in use because a character is next to the player
     A.raw(b"\x50\x51\x52\x56")                                                              # push rax, rcx, rdx, rsi
     walk(A, "pop", want_w=True)
     A.raw(vld(0, 2, 0x340)); A.raw(vld(1, 2, 0x348))                                       # xmm0 = R2.x, xmm1 = R2.z
@@ -312,6 +316,35 @@ def build_mgr():
     A.raw(b"\xc4\xe3\x51\x40\xed\x71")                                                      # vdpps xmm5,xmm5,xmm5,0x71    squared distance (x,y,z) -> xmm5.x
     A.rip(b"\xc5\xf8\x2e\x2d", LIMIT)                                                       # vucomiss xmm5,[LIMIT]
     A.jcc("p", "pop"); A.jcc("ae", "pop")                                                   # NaN or >= LIMIT: keep the game's camera
+    # ---- NEAR guard: a visceral attack (after a parry) puts the player's body inside the enemy, so the head camera would be inside it.  If the camera is closer than sqrt(NEARR2) (3D) to the torso point
+    # (feet + NEARTORSO) of a living character, and for NEARHOLD frames after that, the game's own camera is left alone (this frame is skipped).  Off while dead (the death camera has priority) and with NEARR2 = 0.
+    # (A horizontal feet-to-feet test fired for invulnerable map objects with HP 999/9999 that stand next to the player.) ----
+    A.rip(b"\x80\x3d", DEADF, b"\x00"); A.jcc("ne", "nearoff")
+    A.rip(b"\xc5\xfa\x10\x35", NEARR2)                                                     # vmovss xmm6,[NEARR2]
+    A.rip(b"\x48\x8b\x05", G_WCM); chk(A, RAX, "nearend")
+    A.raw(b"\x44\x8b\x88\x88\x14\x00\x00")                                                   # mov r9d,[rax+0x1488]
+    A.raw(b"\x41\x81\xf9\x00\x01\x00\x00"); A.jcc("be", "ncount")                            # cmp r9d,256 ; jbe
+    A.raw(b"\x41\xb9\x00\x01\x00\x00")                                                      # mov r9d,256
+    A.bind("ncount"); A.raw(b"\x45\x85\xc9"); A.jcc("e", "nearend")                          # test r9d,r9d ; jz nearend
+    A.raw(b"\x48\x8b\x80\x90\x14\x00\x00"); chk(A, RAX, "nearend")                           # rax = [rax+0x1490]
+    A.bind("nloop")
+    A.raw(b"\x48\x8b\x08"); chk(A, RCX, "nnext")                                             # rcx = [rax]
+    A.raw(b"\x48\x8b\x91\xb0\x03\x00\x00"); chk(A, RDX, "nnext"); vt(A, RDX, VT_SLOT, "nnext")
+    A.raw(ld(RDX, RDX, 0x20)); chk(A, RDX, "nnext")
+    A.raw(b"\x83\xba\xf8\x00\x00\x00\x00"); A.jcc("le", "nnext")                            # cmp dword [rdx+0xf8],0 ; jle nnext   only living characters
+    A.raw(b"\x48\x8b\x91\xb0\x03\x00\x00")
+    A.raw(b"\x48\x8b\x52\x68"); chk(A, RDX, "nnext"); vt(A, RDX, VT_X, "nnext")
+    A.raw(b"\xc5\xf8\x10\xaa\xe0\x01\x00\x00"); A.rip(b"\xc5\xd0\x58\x2d", NEARTORSO)    # vmovups xmm5,[rdx+0x1e0] ; vaddps xmm5,xmm5,[NEARTORSO]   torso point
+    A.raw(vx(0x5C, 5, 5, 4)); A.raw(vdp(7, 5, 5, 0x71))                                         # vsubps xmm5,xmm5,xmm4 ; vdpps xmm7,xmm5,xmm5,0x71   squared 3D distance camera - torso
+    A.raw(b"\xc5\xf8\x2e\xfe"); A.jcc("p", "nnext"); A.jcc("ae", "nnext")                      # vucomiss xmm7,xmm6 ; not below NEARR2: next
+    A.rip(b"\x8b\x05", NEARHOLD); A.rip(b"\x89\x05", NEARC); A.jmp("nearend")                 # NEARC = NEARHOLD ; stop searching
+    A.bind("nnext")
+    A.raw(b"\x48\x83\xc0\x38"); A.raw(b"\x41\xff\xc9"); A.jcc("ne", "nloop")                 # add rax,0x38 ; dec r9d ; jnz nloop
+    A.bind("nearend")
+    A.raw(b"\x45\x31\xc9")                                                                  # xor r9d,r9d    (r9d = 0 outside the death camera)
+    A.rip(b"\x8b\x05", NEARC); A.raw(b"\x85\xc0"); A.jcc("e", "nearoff")                       # mov eax,[NEARC] ; test eax,eax ; jz nearoff
+    A.raw(b"\xff\xc8"); A.rip(b"\x89\x05", NEARC); A.rip(b"\xc6\x05", NEARF, b"\x01"); A.jmp("pop")   # dec eax ; mov [NEARC],eax ; mov byte [NEARF],1 ; leave the game's camera alone
+    A.bind("nearoff"); A.rip(b"\xc6\x05", NEARF, b"\x00")                                     # mov byte [NEARF],0
     A.raw(b"\xc5\xf8\x28\xdc")                                                              # vmovaps xmm3,xmm4  (new position row)
     # ---- AIM: while the game's lock-on camera is active (a target pointer sits in [mgr+0x110]) look from the head at the lock-on target instead of at the player's pivot ----
     # target world point = [mgr+0x120]; rows right/up/forward = [mgr+0x10/0x20/0x30] = xmm0/xmm1/xmm2, R x U = F.  The aim is stored as a CAMERA-SPACE offset (TR, TU) of the game's forward:
@@ -406,14 +439,14 @@ def aimconst():
 
 def entry(addr, on, off=b""): return {"offset": "%08X" % addr, "on": on.hex(), "off": off.hex(), "absolute": True}
 
-def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.5, tp_fov=1.3, ph1_scale=1.0, ph1_end=300, ph2_scale=0.05, ph2_end=720, slow_g=0.25, lock_at=0, kill_range=20.0, kill_height=1.3, kill_alpha=0.10):
+def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.5, tp_fov=1.3, ph1_scale=1.0, ph1_end=300, ph2_scale=0.05, ph2_end=720, slow_g=0.25, lock_at=0, kill_range=20.0, kill_height=1.3, kill_alpha=0.10, near_r=0.5, near_hold=90, near_torso=1.0):
     # Tunables are written in three pieces on purpose: ARROFF (D+0x14), COOL (D+0x2C) and HOLD (D+0x3C) are the cave's own cached state (working pose holder/slot, scan back-off).  They start at
     # zero (cave memory is zeroed), are maintained by the cave and must NOT be rewritten when the cheat is toggled in a running game - a reset would force a full memory scan in the live process.
     cfg_a = struct.pack("<ifff", bone * 0x30, r, u, f)                                       # D+0x04: BONEOFF, R, U, F
     cfg_b = struct.pack("<fffff", limit, minn, ymin, ymax, r2)                               # D+0x18: LIMIT, MINN, YMIN, YMAX, R2
     cfg_c = struct.pack("<fff", hmin, snap2, alpha)                                          # D+0x30: HMIN, SNAP2, ALPHA
     core = {"name": "FPS head camera (experimental)", "type": "checkbox", "enabled": True, "memory": [
-        entry(BONEOFF, cfg_a), entry(LIMIT, cfg_b), entry(HMIN, cfg_c), entry(FPSFOV, struct.pack("<ff", math.pi / 180.0 * fps_fov, math.pi / 180.0 * tp_fov)), entry(PADTOG, b"\x01", b"\x00"), entry(AIMCONST, aimconst()), entry(TR, struct.pack("<2f", 0.0, 0.0)), entry(DECAY, struct.pack("<3f", 0.97, 0.99998, 1e-6)), entry(DALPHA, struct.pack("<2f", 0.2, 1e-4)), entry(DFLOOR, struct.pack("<f", 0.30)), entry(FALLV, struct.pack("<4f", 0.0, fallh, 0.0, 0.0)), entry(NOCOLL, b"\x01", b"\x00"), entry(CAVE_EPI, build_epilogue()), entry(CAVE_CAST, build_cast()), entry(CAVE_MGR, build_mgr()),
+        entry(BONEOFF, cfg_a), entry(LIMIT, cfg_b), entry(HMIN, cfg_c), entry(FPSFOV, struct.pack("<ff", math.pi / 180.0 * fps_fov, math.pi / 180.0 * tp_fov)), entry(PADTOG, b"\x01", b"\x00"), entry(AIMCONST, aimconst()), entry(TR, struct.pack("<2f", 0.0, 0.0)), entry(DECAY, struct.pack("<3f", 0.97, 0.99998, 1e-6)), entry(DALPHA, struct.pack("<2f", 0.2, 1e-4)), entry(NEARR2, struct.pack("<fI", near_r ** 2, near_hold)), entry(NEARTORSO, struct.pack("<4f", 0.0, near_torso, 0.0, 0.0)), entry(DFLOOR, struct.pack("<f", 0.30)), entry(FALLV, struct.pack("<4f", 0.0, fallh, 0.0, 0.0)), entry(NOCOLL, b"\x01", b"\x00"), entry(CAVE_EPI, build_epilogue()), entry(CAVE_CAST, build_cast()), entry(CAVE_MGR, build_mgr()),
         entry(HOOK_EPI, hook(HOOK_EPI, CAVE_EPI, 7), ORIG_EPI), entry(HOOK_CAST, hook(HOOK_CAST, CAVE_CAST, 6), ORIG_CAST), entry(HOOK_MGR, hook5(HOOK_MGR, CAVE_MGR), ORIG_MGR),
         entry(MODE, b"\x01", b"\x00")]}                                                      # MODE last: switches the camera override on
     face = {"name": "FPS head camera: body faces the view (needs head camera)", "type": "checkbox", "enabled": True, "memory": [entry(FACE2, b"\x01", b"\x00")]}

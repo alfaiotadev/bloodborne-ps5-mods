@@ -126,6 +126,9 @@ Legend: **+** worked and shipped or kept; **-** negative; **~** partial or super
 | H24 | Killer camera: choose the nearest living character (or the locked-on target) on the first dead frame, aim the death camera at its chest | **+** works; the character list is `[WorldChrMan+0x1490]` (0x38-byte records, count at `+0x1488`) |
 | H25 | First killer-camera build: flat grey screen with a few black slivers (looked like "the world unloaded") | **-** cause: the w lane of the look direction was non-zero (a view row with w != 0 breaks the view matrix); fixed by masking w to 0 (`vandps` with the xyz mask) |
 | H26 | Time profile around the YOU DIED screen: 10x then 5 % made the later death stages (text hold, fade, unload) arrive early and drag; "normal speed until the text, then 5 %" (300 frames, then 0.05 until frame 720) gave the wanted timing (maintainer: "perfect timing") | **+** final defaults; the 10x/slow variants stay available as live knobs |
+| H27 | Visceral attack (after a parry) puts the player inside the victim: the head camera was inside the enemy's coat (white cloth, then black) | **-** observed in a clip |
+| H28 | Guard by horizontal feet-to-feet distance < 0.7 m | **-** fired for invulnerable map objects (HP 999/9999) next to the player: the camera jumped to the normal view "for no reason" |
+| H29 | Guard by 3D distance camera - torso point (feet + 1.0 m) < 0.5 m, held 90 frames, living characters only | **+** maintainer: "good now"; visceral attacks use the game's camera, normal play is unaffected |
 | H21 | World bone arrays not under `[mod+0x18/0x20/0x5F8]` in one session (holders under `[mod+0x10]` at `+0x460/0x470/0x478`) | **~** the cave scans these too (`HOLD` flag `0x10000`); that layout has not been seen again, so the path is untested live |
 
 ### 3.7 Not (yet) done

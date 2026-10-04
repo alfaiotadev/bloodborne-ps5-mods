@@ -1952,12 +1952,12 @@
   {
    "name": "head_camera_manager_cave",
    "address": "0x54A1600",
-   "size": 3387,
-   "purpose": "Camera-manager cave: touchpad double-click toggle of MODE (libScePad report ring), mode-dependent FOV (copies FPSFOV/TPFOV into the Wide-FOV constant every frame), validated pointer walk, holder/slot search, 30 Hz latch + smoothing, height floor, death camera (HP <= 0: no floor, view rows from the head bone, DFLOOR), distance guard, head position replaces the position row, then the AIM block re-orients to the lock-on target. Subroutines H (holder, optionally hosted by A = [mod+0x10]) and P (array plausibility) are inside. 3387 bytes: written as four cheat entries (3 x 1000 + 387 bytes) because onionHEN's entries are limited to 1024 bytes (ONION_MAX_PATCH_BYTES); see docs/agents/70-onionhen-cheat-engine.md hazard 1.",
+   "size": 3847,
+   "purpose": "Camera-manager cave: touchpad double-click toggle of MODE (libScePad report ring), mode-dependent FOV (copies FPSFOV/TPFOV into the Wide-FOV constant every frame), validated pointer walk, holder/slot search, 30 Hz latch + smoothing, height floor, close-character guard, death camera (HP <= 0: no floor, view rows from the head bone, DFLOOR), distance guard, head position replaces the position row, then the AIM block re-orients to the lock-on target. Subroutines H (holder, optionally hosted by A = [mod+0x10]) and P (array plausibility) are inside. 3847 bytes: written as four cheat entries (3 x 1000 + 847 bytes) because onionHEN's entries are limited to 1024 bytes (ONION_MAX_PATCH_BYTES); see docs/agents/70-onionhen-cheat-engine.md hazard 1.",
    "mod": "FPS head camera (experimental)",
    "scope": "release",
    "generator": "tools/mods/make_head_camera_mod.py",
-   "address_end": "0x54A233A"
+   "address_end": "0x54A2506"
   },
   {
    "name": "head_camera_aim_constants",
@@ -2238,7 +2238,7 @@
  ],
  "data_block": {
   "base": "0x54A0E00",
-  "span": "0x54A0E00..0x54A0FD7",
+  "span": "0x54A0E00..0x54A0FFF",
   "alignment": "16-byte vectors are 16-byte aligned (vmovaps targets)",
   "write_order": "data first, caves second, hooks last; MODE flag is the last entry of the core mod; AIM/FACE2/PADTOG flags are separate entries. ARROFF/COOL/HOLD are cave-owned state and are never written by a cheat entry.",
   "fields": [
@@ -2986,6 +2986,61 @@
     "default": "runtime",
     "description": "Easing factor in use this frame (DALPHA, or DALPHA2 while looking at the killer).",
     "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x1D8",
+    "address": "0x54A0FD8",
+    "name": "NEARF",
+    "type": "u8",
+    "size": 1,
+    "default": 0,
+    "description": "Close-character guard active this frame: the game's camera is used and the FACE2 epilogue is skipped.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x1DC",
+    "address": "0x54A0FDC",
+    "name": "NEARC",
+    "type": "u32",
+    "size": 4,
+    "default": "runtime",
+    "description": "Frames left until the close-character guard releases (reloaded with NEARHOLD on each detection).",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x1E0",
+    "address": "0x54A0FE0",
+    "name": "NEARR2",
+    "type": "f32",
+    "size": 4,
+    "default": 0.25,
+    "description": "Squared 3D distance (0.5 m) between the camera and the torso point of a living character that switches the guard on; 0 disables it.",
+    "initialised_by": "core mod: cheat entry at 0x54A0FE0 (8 bytes: NEARR2, NEARHOLD)"
+   },
+   {
+    "offset": "0x1E4",
+    "address": "0x54A0FE4",
+    "name": "NEARHOLD",
+    "type": "u32",
+    "size": 4,
+    "default": 90,
+    "description": "Frames the guard stays on after the last detection (1.5 s).",
+    "initialised_by": "core mod: cheat entry at 0x54A0FE0 (8 bytes: NEARR2, NEARHOLD)"
+   },
+   {
+    "offset": "0x1F0",
+    "address": "0x54A0FF0",
+    "name": "NEARTORSO",
+    "type": "vec4f",
+    "size": 16,
+    "default": [
+     0.0,
+     1.0,
+     0.0,
+     0.0
+    ],
+    "description": "Offset from a character's feet (physics body position) to its torso point.",
+    "initialised_by": "core mod: cheat entry at 0x54A0FF0 (16 bytes)"
    }
   ],
   "core_mod_entries": [
@@ -3046,8 +3101,8 @@
    },
    {
     "address": "0x54A1600",
-    "bytes": 3387,
-    "off": "empty in the generator; build_cheats.py sets off = on (build_cheats.py splits it into 1000 + 1000 + 1000 + 387 byte entries)"
+    "bytes": 3847,
+    "off": "empty in the generator; build_cheats.py sets off = on (build_cheats.py splits it into 1000 + 1000 + 1000 + 847 byte entries)"
    },
    {
     "address": "0x54A0F40",

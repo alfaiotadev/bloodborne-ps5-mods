@@ -28,12 +28,12 @@ Confidence column:
 | `0x54A0400..0x54A0485` | 134 | Anisotropic stub | `make_aniso_mod.py` |
 | `0x54A0500` | 4 | Wide-FOV constant | float `pi/180*scale` |
 | `0x54A0780..0x54A0966` | 486 | Head camera: epilogue cave (FACE2) | `make_head_camera_mod.py` |
-| `0x54A0E00..0x54A0FD7` | 0x1D8 | Head camera data block `D` | fields in section 9 |
+| `0x54A0E00..0x54A0FFF` | 0x200 | Head camera data block `D` | fields in section 9 |
 | `0x54A1100..0x54A111A` | 27 | Head camera: camera-cast cave | |
 | `0x54A1300..0x54A130C` | 13 | DLAA threshold cave | |
 | `0x54A1340` | 4 | DLAA threshold constant | float 0.3 |
 | `0x54A1140..0x54A1156` | 22 | Head camera: death slow motion cave (hook `0x1E196BB`) | |
-| `0x54A1600..0x54A233A` | 3387 | Head camera: camera-manager cave (touchpad toggle, head position, death camera, killer selection and look-at, slow-motion state, aim) | written as three cheat entries (1000 + 1000 + 531 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
+| `0x54A1600..0x54A2506` | 3847 | Head camera: camera-manager cave (touchpad toggle, head position, close-character guard, death camera, killer selection and look-at, slow-motion state, aim) | written as three cheat entries (1000 + 1000 + 531 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
 
 ### Lab (dev-only) allocations that COLLIDE with the release ones
 
@@ -285,6 +285,11 @@ Derived from `tools/mods/make_head_camera_mod.py` (defaults of `build()`); all f
 | `+0x1C0` | `0x54A0FC0` | WORLDUP | vec4 | (0, 1, 0, 0) | up vector of the killer view |
 | `+0x1D0` | `0x54A0FD0` | DALPHA2 | f32 | 0.10 | easing of the turn to the killer |
 | `+0x1D4` | `0x54A0FD4` | ALPHAUSE | f32 | runtime | easing factor in use this frame (DALPHA or DALPHA2) |
+| `+0x1D8` | `0x54A0FD8` | NEARF | u8 | runtime | close-character guard active this frame (the game's camera is used; the FACE2 epilogue is skipped) |
+| `+0x1DC` | `0x54A0FDC` | NEARC | u32 | runtime | frames left until the guard releases |
+| `+0x1E0` | `0x54A0FE0` | NEARR2 | f32 | 0.25 | squared 3D distance (0.5 m) between the camera and a living character's torso point; 0 disables the guard |
+| `+0x1E4` | `0x54A0FE4` | NEARHOLD | u32 | 90 | frames the guard stays on after the last detection |
+| `+0x1F0` | `0x54A0FF0` | NEARTORSO | vec4 | (0, 1, 0, 0) | offset from a character's feet to its torso point |
 | `+0x18C` | `0x54A0F8C` | PH2SCALE | f32 | 0.05 | time scale of phase 2 (slow motion after the YOU DIED screen has arrived) |
 | `+0x190` | `0x54A0F90` | PH2END | u32 | 720 | frames after the death at which the time scale returns to 1.0 |
 | `+0xA0` | `0x54A0EA0` | AIMMIN2 / AIMMAX2 / AIMCOS / AIMWMIN | 4 x f32 | 0.09 / 3600 / 0.3 / 0.05 | target distance window (0.3 m..60 m, squared), min cos(angle), AIMWMIN unused |
