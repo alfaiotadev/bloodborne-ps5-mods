@@ -7,9 +7,9 @@ Highlights: 60 FPS, no motion blur / chromatic aberration, sharper anti-aliasing
 > **Read this first: tested on firmware 12.40 and a PS5 Pro only.**
 > Everything here was developed and measured on a **PS5 Pro, system software 12.40**. Behaviour and performance on a **base PS5 (or Slim / Digital)** and on other firmware versions are **unknown** - the 60 FPS patch and anything that changes GPU/CPU load in particular may behave differently. Reports from other consoles are very welcome (see the issue templates). Use at your own risk, on a console and a game copy you own. This project is **not affiliated with or endorsed by** Sony Interactive Entertainment, FromSoftware, onionHEN or any other party named in [CREDITS.md](CREDITS.md). See [docs/compatibility.md](docs/compatibility.md).
 
-![First-person head camera: running along the rooftop, looking over the edge and jumping down, ending on the death screen](site/assets/media/fps-ladder-jump.webp)
+![First-person head camera: walking along the rooftop, looking over the edge, jumping down and dying - the death camera follows the head to the ground, ending on the death screen](site/assets/media/fps-ladder-jump.webp)
 
-*The experimental FPS head camera (PS5 Pro, `fps` profile): head bobbing, the body follows the view, and a jump from the ladder.*
+*The experimental FPS head camera (PS5 Pro, `fps` profile): head bobbing, the body follows the view, and the death camera: after a jump from the rooftop the view follows the head to the ground.*
 
 **Feature site:** <https://alfaiotadev.github.io/bloodborne-ps5-mods/> (feature overview, side-by-side comparison tool, credits).
 
@@ -25,9 +25,10 @@ Highlights: 60 FPS, no motion blur / chromatic aberration, sharper anti-aliasing
 | DLAA threshold 0.3 | off | stable | The game already runs a DLAA pass; this raises its edge-detection threshold from 0.1 to 0.3, which measured and looked sharper (see the comparison tool on the site). |
 | Anisotropic filtering 16x | off | works, little effect | Overrides the sampler table to 16x anisotropy. **No controlled test showed a visible difference** (even disabling anisotropy changed nothing in the test scenes); included for completeness. |
 | No depth of field | off | works, scene-specific | Disables the depth-of-field pass. The effect is mild and depends on the scene (visible at far distances in one test scene, no difference in two Yharnam scenes). |
-| FPS head camera (experimental) | off | experimental | First-person camera attached to the character's head bone (head bobbing, rolls, camera collision disabled). **Double-click the touchpad to switch it on and off in game**; the field of view switches with it (x1.3 third person, x1.5 first person in the `_fps` profile). |
+| FPS head camera (experimental) | off | experimental | First-person camera attached to the character's head bone (head bobbing, rolls, camera collision disabled, and a death camera that follows the head to the ground, optionally in slow motion). **Double-click the touchpad to switch it on and off in game**; the field of view switches with it (x1.3 third person, x1.5 first person in the `_fps` profile). |
 | FPS head camera: body faces the view | off (on in the `_fps` profile) | experimental | While the head camera is on, turns the displayed body to the camera direction (a more "tank-like" first-person feel). **Side effect: the coat/hood cloth disappears while it is on.** Back to normal in third person. Needs the head camera. |
 | FPS head camera: aim at the lock-on target | off | experimental | While locked on, the first-person view looks at the target. Needs the head camera. |
+| FPS head camera: death slow motion | off (on in the `_fps` profile) | experimental | GTA-style death effect when HP reaches 0: every character's time step drops to 10 % for about 1.2 seconds, then runs at 3x so the death animation (and the "YOU DIED" screen that follows it) finishes sooner. Needs the head camera. |
 | DLC Save Requirement Unlock | off | stable | Sets the DLC-ownership flags so that saves which require the DLC can be loaded. |
 
 Details, numbers and the trade-offs of each mod: [docs/features.md](docs/features.md).

@@ -1932,12 +1932,12 @@
   {
    "name": "head_camera_epilogue_cave",
    "address": "0x54A0780",
-   "size": 403,
+   "size": 486,
    "purpose": "FACE2: rotates model->world rows R0/R2 so the displayed body faces the camera direction (display only). Runs in the follow-camera epilogue. Ends with the displaced `add rsp,0x3d8` and a jump back to 0x183F782. Acts only while MODE (the head camera) is on.",
    "mod": "FPS head camera: body faces the view",
    "scope": "release",
    "generator": "tools/mods/make_head_camera_mod.py",
-   "address_end": "0x54A0905"
+   "address_end": "0x54A0966"
   },
   {
    "name": "head_camera_cast_cave",
@@ -1952,12 +1952,12 @@
   {
    "name": "head_camera_manager_cave",
    "address": "0x54A1600",
-   "size": 1761,
-   "purpose": "Camera-manager cave: touchpad double-click toggle of MODE (libScePad report ring), mode-dependent FOV (copies FPSFOV/TPFOV into the Wide-FOV constant every frame), validated pointer walk, holder/slot search, 30 Hz latch + smoothing, height floor, distance guard, head position replaces the position row, then the AIM block re-orients to the lock-on target. Subroutines H (holder) and P (array plausibility) are inside. 1761 bytes: written as two cheat entries (1000 + 761 bytes) because onionHEN's entries are limited to 1024 bytes (ONION_MAX_PATCH_BYTES); see docs/agents/70-onionhen-cheat-engine.md hazard 1.",
+   "size": 2556,
+   "purpose": "Camera-manager cave: touchpad double-click toggle of MODE (libScePad report ring), mode-dependent FOV (copies FPSFOV/TPFOV into the Wide-FOV constant every frame), validated pointer walk, holder/slot search, 30 Hz latch + smoothing, height floor, death camera (HP <= 0: no floor, view rows from the head bone, DFLOOR), distance guard, head position replaces the position row, then the AIM block re-orients to the lock-on target. Subroutines H (holder, optionally hosted by A = [mod+0x10]) and P (array plausibility) are inside. 2556 bytes: written as three cheat entries (1000 + 1000 + 556 bytes) because onionHEN's entries are limited to 1024 bytes (ONION_MAX_PATCH_BYTES); see docs/agents/70-onionhen-cheat-engine.md hazard 1.",
    "mod": "FPS head camera (experimental)",
    "scope": "release",
    "generator": "tools/mods/make_head_camera_mod.py",
-   "address_end": "0x54A1C3B"
+   "address_end": "0x54A1FFB"
   },
   {
    "name": "head_camera_aim_constants",
@@ -2238,7 +2238,7 @@
  ],
  "data_block": {
   "base": "0x54A0E00",
-  "span": "0x54A0E00..0x54A0F3B",
+  "span": "0x54A0E00..0x54A0F93",
   "alignment": "16-byte vectors are 16-byte aligned (vmovaps targets)",
   "write_order": "data first, caves second, hooks last; MODE flag is the last entry of the core mod; AIM/FACE2/PADTOG flags are separate entries. ARROFF/COOL/HOLD are cave-owned state and are never written by a cheat entry.",
   "fields": [
@@ -2389,7 +2389,7 @@
     "type": "u32",
     "size": 4,
     "default": 0,
-    "description": "CAVE-OWNED: which holder of the model container keeps the arrays (0x18, 0x20 or 0x5F8); not written by the cheat file (starts at 0, so the first run scans).",
+    "description": "CAVE-OWNED: which holder keeps the arrays: an offset in the model container (0x18, 0x20, 0x5F8) or, with flag 0x10000, in A = [mod+0x10] (vtable 0x57A2AC0; 0x10460, 0x10470, 0x10478); not written by the cheat file (starts at 0, so the first run scans).",
     "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
    },
    {
@@ -2461,6 +2461,26 @@
     "default": 0,
     "description": "1 = rotate displayed model rows to face the camera (hides coat/hood cloth). Own cheat mod.",
     "initialised_by": "FACE2 mod (on 01 / off 00)"
+   },
+   {
+    "offset": "0x74",
+    "address": "0x54A0E74",
+    "name": "DEADF",
+    "type": "u8",
+    "size": 1,
+    "default": 0,
+    "description": "Death flag: 1 while HP [[pl+0x3b0]+0x20]+0xf8 <= 0 (recomputed every frame by the manager cave while the head camera is on); lifts the height floor, switches on the death-camera rows, suspends FACE2.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x77",
+    "address": "0x54A0E77",
+    "name": "SLOWON",
+    "type": "u8",
+    "size": 1,
+    "default": 0,
+    "description": "1 = death slow motion on (own cheat mod 'FPS head camera: death slow motion'); the hook at 0x1E196BB belongs to that mod.",
+    "initialised_by": "death slow motion mod (on 01 / off 00)"
    },
    {
     "offset": "0x75",
@@ -2716,6 +2736,146 @@
     "default": 0.0226893,
     "description": "Radians per FOV degree used in third person (x1.3 default, the Wide-FOV mod's scale).",
     "initialised_by": "cheat entry at 0x54A0E80"
+   },
+   {
+    "offset": "0x140",
+    "address": "0x54A0F40",
+    "name": "DALPHA",
+    "type": "f32",
+    "size": 4,
+    "default": 0.2,
+    "description": "Death camera: view smoothing factor S += DALPHA*(T-S) per frame (forward and up vectors).",
+    "initialised_by": "cheat entry at 0x54A0F40 (8 bytes: DALPHA, DEPS)"
+   },
+   {
+    "offset": "0x144",
+    "address": "0x54A0F44",
+    "name": "DEPS",
+    "type": "f32",
+    "size": 4,
+    "default": 0.0001,
+    "description": "Death camera: minimum squared vector length before normalising (otherwise the game's rows are kept for the frame).",
+    "initialised_by": "cheat entry at 0x54A0F40 (8 bytes: DALPHA, DEPS)"
+   },
+   {
+    "offset": "0x148",
+    "address": "0x54A0F48",
+    "name": "HA",
+    "type": "u64",
+    "size": 8,
+    "default": "runtime",
+    "description": "Address of the head bone matrix (3 rows of 4 floats) found this frame; 0 = none (set by subroutine P, cleared in the fallback path). The death camera reads its rotation.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x150",
+    "address": "0x54A0F50",
+    "name": "FS",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Smoothed forward vector of the death camera; seeded with the game's forward every alive frame.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x160",
+    "address": "0x54A0F60",
+    "name": "US",
+    "type": "vec4f",
+    "size": 16,
+    "default": "runtime",
+    "description": "Smoothed up vector of the death camera; seeded with the game's up every alive frame.",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x170",
+    "address": "0x54A0F70",
+    "name": "DFLOOR",
+    "type": "f32",
+    "size": 4,
+    "default": 0.3,
+    "description": "Death camera: lowest camera height above the feet (m); the final camera y is max(y, origin.y + DFLOOR). Live-tunable.",
+    "initialised_by": "cheat entry at 0x54A0F70"
+   },
+   {
+    "offset": "0x174",
+    "address": "0x54A0F74",
+    "name": "DFLR",
+    "type": "f32",
+    "size": 4,
+    "default": "runtime",
+    "description": "origin.y + DFLOOR for this frame (computed before the origin register is reused).",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x178",
+    "address": "0x54A0F78",
+    "name": "TSCALE",
+    "type": "f32",
+    "size": 4,
+    "default": 1.0,
+    "description": "Global character time scale: multiplied into the speed factor [r13+0x374] by the CAVE_TS hook at 0x1E196BB; eased by the manager cave (1.0 normally, SLOWMIN while dying); reset to 1.0 when the head camera is off.",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F78 (16 bytes: TSCALE, SLOWMIN, SLOWHOLD, SLOWG)"
+   },
+   {
+    "offset": "0x17C",
+    "address": "0x54A0F7C",
+    "name": "SLOWMIN",
+    "type": "f32",
+    "size": 4,
+    "default": 0.1,
+    "description": "Time scale target while the player is dead (first SLOWHOLD frames).",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F78 (16 bytes: TSCALE, SLOWMIN, SLOWHOLD, SLOWG)"
+   },
+   {
+    "offset": "0x180",
+    "address": "0x54A0F80",
+    "name": "SLOWHOLD",
+    "type": "u32",
+    "size": 4,
+    "default": 75,
+    "description": "Manager frames after the death during which the target is SLOWMIN (real time, about 1.25 s at 60 fps); then FASTMAX until FASTEND.",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F78 (16 bytes: TSCALE, SLOWMIN, SLOWHOLD, SLOWG)"
+   },
+   {
+    "offset": "0x184",
+    "address": "0x54A0F84",
+    "name": "SLOWG",
+    "type": "f32",
+    "size": 4,
+    "default": 0.15,
+    "description": "Easing factor per frame: TSCALE += SLOWG*(target - TSCALE).",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F78 (16 bytes: TSCALE, SLOWMIN, SLOWHOLD, SLOWG)"
+   },
+   {
+    "offset": "0x188",
+    "address": "0x54A0F88",
+    "name": "DCNT",
+    "type": "u32",
+    "size": 4,
+    "default": "runtime",
+    "description": "Manager frames since the death (counts while DEADF and SLOWON; cleared when alive).",
+    "initialised_by": "cave-owned runtime state (zero at start, not in any cheat entry)"
+   },
+   {
+    "offset": "0x18C",
+    "address": "0x54A0F8C",
+    "name": "FASTMAX",
+    "type": "f32",
+    "size": 4,
+    "default": 3.0,
+    "description": "Time scale target after the SLOWHOLD frames (fast forward so that the death animation, and the YOU DIED screen that follows it, finish sooner).",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F8C (8 bytes: FASTMAX, FASTEND)"
+   },
+   {
+    "offset": "0x190",
+    "address": "0x54A0F90",
+    "name": "FASTEND",
+    "type": "u32",
+    "size": 4,
+    "default": 240,
+    "description": "Frames after the death at which the target returns to 1.0.",
+    "initialised_by": "death slow motion mod: cheat entry at 0x54A0F8C (8 bytes: FASTMAX, FASTEND)"
    }
   ],
   "core_mod_entries": [
@@ -2776,7 +2936,17 @@
    },
    {
     "address": "0x54A1600",
-    "bytes": 1761,
+    "bytes": 2556,
+    "off": "empty in the generator; build_cheats.py sets off = on (build_cheats.py splits it into 1000 + 1000 + 556 byte entries)"
+   },
+   {
+    "address": "0x54A0F40",
+    "bytes": 8,
+    "off": "empty in the generator; build_cheats.py sets off = on"
+   },
+   {
+    "address": "0x54A0F70",
+    "bytes": 4,
     "off": "empty in the generator; build_cheats.py sets off = on"
    },
    {

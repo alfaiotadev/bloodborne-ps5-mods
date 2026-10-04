@@ -3,7 +3,7 @@
 
 Usage:  python3 build_cheats.py [--out ../../cheats/CUSA03173_01.09.json] [--enable-all] [--profile default|quality|fps] [--fov-scale X] [--all-profiles]
   default      : release defaults (60 FPS / no motion blur / no chromatic aberration / skip intro ON, everything else OFF = opt-in)
-  --profile    : ready-made selections.  quality = default + Wide FOV x1.3 + DLAA 0.3;  fps = quality + FPS head camera + body-facing + lock-on aim (experimental); FOV x1.3 in third person, x1.5 in the first-person view
+  --profile    : ready-made selections.  quality = default + Wide FOV x1.3 + DLAA 0.3;  fps = quality + FPS head camera + body-facing + lock-on aim + death slow motion (experimental); FOV x1.3 in third person, x1.5 in the first-person view
   --fov-scale  : FOV multiplier of the Wide-FOV mod = third-person camera (default 1.3)
   --fps-fov    : FOV multiplier used while the FPS head camera is on (default 1.5); the head-camera cave switches the Wide-FOV constant with the camera mode
   --all-profiles : writes cheats/CUSA03173_01.09.json (default) and cheats/profiles/CUSA03173_01.09_{quality,fps}.json
@@ -31,7 +31,7 @@ default_on = {"60 FPS (Lance McDonald)", "No Motion Blur", "No Chromatic Aberrat
 if profile in ("quality", "fps"):
     default_on |= {m["name"] for m in mods if m["name"].startswith(("Wide FOV", "DLAA threshold"))}
 if profile == "fps":
-    default_on |= {"FPS head camera (experimental)", "FPS head camera: body faces the view (needs head camera)", "FPS head camera: aim at the lock-on target (needs head camera)"}
+    default_on |= {"FPS head camera (experimental)", "FPS head camera: body faces the view (needs head camera)", "FPS head camera: aim at the lock-on target (needs head camera)", "FPS head camera: death slow motion (needs head camera)"}
 for m in mods:
     m["type"] = "checkbox"; m["enabled"] = ("--enable-all" in args) or (m["name"] in default_on)
 # onionHEN refuses to switch a mod OFF when any of its entries has an empty 'off' ("invalid patch").  Caves and data blocks have no original bytes, so 'off' = 'on' (they stay in place, harmless once

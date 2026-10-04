@@ -116,6 +116,14 @@ Legend: **+** worked and shipped or kept; **-** negative; **~** partial or super
 | H13 | Runtime toggling of an enemy-movement cheat | **-** crash in `CSChrThread4` (not our code) |
 | H14 | Button-combo toggle | the lab notes: pad bitmask not found; the **current generator** has a touchpad double-click toggle (pad report ring of libScePad); **no live-verification record available** - verify ([90](90-open-questions.md)) |
 | H15 | Body silhouette spin when backpedalling starts | **-** accepted limitation |
+| H16 | Death: the game's camera does not change when the player dies, the first-person view hovered at `HMIN` while the head fell to 0.17 m | **-** looked wrong |
+| H17 | HP source: `pl+0x1178` aliases HP in one session only; `[[pl+0x3b0]+0x20]+0xf8` is stable across respawn (`[pl+0x3c0]+0x14` is a read-only mirror) | **+** `death_probe.py`; writing 0 there kills the player for tests |
+| H18 | Death camera: no height floor, rows from the head bone (F = column 2, U = column 0), eased `DALPHA` 0.2 | **+** view tumbles with the head; maintainer: "great effect" |
+| H19 | Camera clipped into the ground when lying (head 0.1 m above the feet) | **+** `DFLOOR` 0.30 on the final camera y; maintainer: better |
+| H20 | Live-writing a cave whose code shifted while the game ran it | **-** crash; `apply_live.py` now restores the hook bytes first, writes the cave, then re-enables the hook |
+| H22 | GTA-style slow motion at HP 0: scale the per-character speed factor `[[chr+0x3b0]+0x30]+0x374` (read at `0x1E196BB`, multiplies the character time step); the stock "Player's Speed x2" cheat has a PS4-era player check that never matches here | **+** `TSCALE` 1.0 -> 0.25 in ~0.5 s, held ~2 s; the head's fall slows to a third; maintainer: should be 10 % -> `SLOWMIN` 0.10 |
+| H23 | "YOU DIED" appears when the death animation ends (maintainer observation); with the slow motion held for 50 s it took about a minute; snapshots of 237 global objects (`ui_probe.py`) and 25 Hz watching (`obj_watch.py`) found no single flag that starts the text (many timers/toggles); at a time scale of 3 the sequence from death to the load screen shrank from ~9.7 s to ~6.5 s | **~** profile changed to slow 75 frames, then `FASTMAX` 3.0 until 240 frames |
+| H21 | World bone arrays not under `[mod+0x18/0x20/0x5F8]` in one session (holders under `[mod+0x10]` at `+0x460/0x470/0x478`) | **~** the cave scans these too (`HOLD` flag `0x10000`); that layout has not been seen again, so the path is untested live |
 
 ### 3.7 Not (yet) done
 

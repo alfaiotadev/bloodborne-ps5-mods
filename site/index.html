@@ -134,7 +134,7 @@
       <li class="card" data-group="optional experimental">
         <div class="badges"><span class="badge off">Default off</span><span class="badge exp">Experimental</span></div>
         <h3>FPS head camera</h3>
-        <p>A first-person camera attached to the character's head bone. The game's own camera logic keeps running, camera collision pull-in is disabled, and it falls back to the normal camera if its safety checks fail. Double-click the touchpad to switch it on and off in game; the field of view follows the camera mode. Toggle it off and on to reset it.</p>
+        <p>A first-person camera attached to the character's head bone. The game's own camera logic keeps running, camera collision pull-in is disabled, and it falls back to the normal camera if its safety checks fail. When the hunter dies the view follows the head to the ground (death camera), optionally in GTA-style slow motion. Double-click the touchpad to switch it on and off in game; the field of view follows the camera mode. Toggle it off and on to reset it.</p>
         <a class="more" href="compare.html#set=cam&amp;scene=cam-proto">See an early prototype</a>
       </li>
       <li class="card" data-group="optional experimental">
@@ -204,11 +204,11 @@
     <ul class="gallery">
       <li>
         <figure>
-          <video controls muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/media/fps-ladder-jump-poster.webp" aria-label="Clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge and jumping down, ending on the death screen">
+          <video controls muted loop playsinline preload="metadata" width="1280" height="720" poster="assets/media/fps-ladder-jump-poster.webp" aria-label="Clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge, jumping down and dying; the death camera follows the head to the ground, ending on the death screen">
             <source src="assets/media/fps-ladder-jump.webm" type="video/webm">
-            <img src="assets/media/fps-ladder-jump.webp" width="640" height="360" alt="Animated clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge and jumping down, ending on the death screen">
+            <img src="assets/media/fps-ladder-jump.webp" width="640" height="360" alt="Animated clip of the FPS head camera: walking along the Yharnam rooftop, looking over the edge, jumping down and dying; the death camera follows the head to the ground, ending on the death screen">
           </video>
-          <figcaption><strong>FPS head camera: the jump.</strong> Recorded on a PS5 Pro with the <code>fps</code> profile: head bobbing, the body turned to the view, and a drop from the ladder ending (as it should) on the death screen. 12 seconds, no sound.</figcaption>
+          <figcaption><strong>FPS head camera: the jump and the death camera.</strong> Recorded on a PS5 Pro with the <code>fps</code> profile: head bobbing, the body turned to the view, and a jump from the rooftop. When the hunter dies the view follows the head down the wall and ends on the death screen. 12 seconds, no sound.</figcaption>
         </figure>
       </li>
       <li>
@@ -227,6 +227,15 @@
             <img src="assets/media/fps-first-enemy-poster.webp" width="1280" height="720" alt="First-person view in Yharnam facing the first enemy near the crates, with its health bar and the lock-on marker visible; the video is not supported by this browser">
           </video>
           <figcaption><strong>FPS head camera: the first fight.</strong> Walking into the Yharnam street, the first enemy coming out from behind the crates, and the lock-on aim keeping the view on it. 14 seconds, no sound.</figcaption>
+        </figure>
+      </li>
+      <li>
+        <figure>
+          <video controls muted loop playsinline preload="none" width="1280" height="720" poster="assets/media/fps-axeman-death-poster.webp" aria-label="Clip of the FPS head camera: a large axe-wielding enemy and a second one chasing in the Yharnam street; the hunter is struck down and the death camera follows the head to the ground, ending on the death screen">
+            <source src="assets/media/fps-axeman-death.webm" type="video/webm">
+            <img src="assets/media/fps-axeman-death-poster.webp" width="1280" height="720" alt="First-person view in the Yharnam street facing a large armoured enemy that is raising a huge cleaver; the video is not supported by this browser">
+          </video>
+          <figcaption><strong>FPS head camera: the axeman and the death camera.</strong> A large axe-wielding enemy comes down the Yharnam street with a second one chasing. When the hunter is struck down the view follows the head to the ground and ends on the death screen. 13 seconds, no sound.</figcaption>
         </figure>
       </li>
       <li>

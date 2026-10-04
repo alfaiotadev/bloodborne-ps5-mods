@@ -27,12 +27,13 @@ Confidence column:
 |---|---|---|---|
 | `0x54A0400..0x54A0485` | 134 | Anisotropic stub | `make_aniso_mod.py` |
 | `0x54A0500` | 4 | Wide-FOV constant | float `pi/180*scale` |
-| `0x54A0780..0x54A0905` | 390 | Head camera: epilogue cave (FACE2) | `make_head_camera_mod.py` |
-| `0x54A0E00..0x54A0F3B` | 0x13C | Head camera data block `D` | fields in section 9 |
+| `0x54A0780..0x54A0966` | 486 | Head camera: epilogue cave (FACE2) | `make_head_camera_mod.py` |
+| `0x54A0E00..0x54A0F93` | 0x194 | Head camera data block `D` | fields in section 9 |
 | `0x54A1100..0x54A111A` | 27 | Head camera: camera-cast cave | |
 | `0x54A1300..0x54A130C` | 13 | DLAA threshold cave | |
 | `0x54A1340` | 4 | DLAA threshold constant | float 0.3 |
-| `0x54A1600..0x54A1CE0` | 1761 | Head camera: camera-manager cave (touchpad toggle, head position, aim) | written as two cheat entries (1000 + 761 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
+| `0x54A1140..0x54A1156` | 22 | Head camera: death slow motion cave (hook `0x1E196BB`) | |
+| `0x54A1600..0x54A1FFB` | 2556 | Head camera: camera-manager cave (touchpad toggle, head position, death camera, slow-motion state, aim) | written as three cheat entries (1000 + 1000 + 531 bytes) because of the 1024-byte entry cap, see [70](70-onionhen-cheat-engine.md) hazard 1 |
 
 ### Lab (dev-only) allocations that COLLIDE with the release ones
 
@@ -247,7 +248,7 @@ Derived from `tools/mods/make_head_camera_mod.py` (defaults of `build()`); all f
 | `+0x30` | `0x54A0E30` | HMIN | f32 | 1.25 | camera height floor above the origin (feet) |
 | `+0x34` | `0x54A0E34` | SNAP2 | f32 | 1.0 | squared snap distance of the smoothing |
 | `+0x38` | `0x54A0E38` | ALPHA | f32 | 0.5 | smoothing factor |
-| `+0x3C` | `0x54A0E3C` | HOLD | u32 | 0 (cave-owned) | which holder (`0x18`, `0x20`, `0x5F8`); not written by the cheat file |
+| `+0x3C` | `0x54A0E3C` | HOLD | u32 | 0 (cave-owned) | which holder: offset in the model container (`0x18`, `0x20`, `0x5F8`) or, with flag `0x10000`, in `A = [mod+0x10]` (vtable `0x57A2AC0`: `0x10460`, `0x10470`, `0x10478`); not written by the cheat file |
 | `+0x40` | `0x54A0E40` | LASTH | vec4 | runtime | latched head (30 Hz pose) |
 | `+0x50` | `0x54A0E50` | LASTO | vec4 | runtime | latched origin of that frame |
 | `+0x60` | `0x54A0E60` | OFFS | vec4 | runtime | smoothed head offset |
@@ -255,11 +256,27 @@ Derived from `tools/mods/make_head_camera_mod.py` (defaults of `build()`); all f
 | `+0x71` | `0x54A0E71` | MODE | u8 | 1 | position override on (written last) |
 | `+0x72` | `0x54A0E72` | AIM | u8 | 0 | lock-on aim (own mod) |
 | `+0x73` | `0x54A0E73` | FACE2 | u8 | 0 | display-only body facing (own mod) |
+| `+0x74` | `0x54A0E74` | DEADF | u8 | runtime | death flag: HP `[[pl+0x3b0]+0x20]+0xf8` <= 0 (recomputed every frame while the head camera is on) |
+| `+0x77` | `0x54A0E77` | SLOWON | u8 | 0 | death slow motion on (own mod; the hook at `0x1E196BB` is part of that mod) |
 | `+0x75` | `0x54A0E75` | PADTOG | u8 | 1 | enables the touchpad double-click toggle of MODE (entry on `01` / off `00`) |
 | `+0x76` | `0x54A0E76` | PADPREV | u8 | runtime | previous touchpad state (edge detection) |
 | `+0x78` | `0x54A0E78` | FRAME | u32 | runtime | frame counter incremented by the pad code |
 | `+0x7C` | `0x54A0E7C` | PADLAST | u32 | runtime | frame of the last rising edge (a second click within 30 frames toggles) |
 | `+0x90` | `0x54A0E90` | FALLV | vec4 | (0, 1.53, 0, 0) | fallback head offset when no array found |
+| `+0x140` | `0x54A0F40` | DALPHA | f32 | 0.2 | death camera: view smoothing factor `S += DALPHA*(T-S)` per frame |
+| `+0x144` | `0x54A0F44` | DEPS | f32 | 1e-4 | death camera: minimum squared length before a vector is normalised (else the game's rows are kept) |
+| `+0x148` | `0x54A0F48` | HA | u64 | runtime | address of the head matrix found this frame (0 = none); the death camera reads its rotation |
+| `+0x150` | `0x54A0F50` | FS | vec4 | runtime | smoothed forward vector (seeded with the game's forward while alive) |
+| `+0x160` | `0x54A0F60` | US | vec4 | runtime | smoothed up vector (seeded with the game's up while alive) |
+| `+0x170` | `0x54A0F70` | DFLOOR | f32 | 0.30 | death camera: lowest camera height above the feet (m) |
+| `+0x174` | `0x54A0F74` | DFLR | f32 | runtime | that floor as a world y coordinate for this frame |
+| `+0x178` | `0x54A0F78` | TSCALE | f32 | 1.0 | global character time scale, multiplied into `[r13+0x374]` by the `0x1E196BB` hook (eased by the manager cave) |
+| `+0x17C` | `0x54A0F7C` | SLOWMIN | f32 | 0.10 | time scale while dying |
+| `+0x180` | `0x54A0F80` | SLOWHOLD | u32 | 75 | frames after the death during which SLOWMIN is the target (then FASTMAX until FASTEND) |
+| `+0x184` | `0x54A0F84` | SLOWG | f32 | 0.15 | easing factor per frame |
+| `+0x188` | `0x54A0F88` | DCNT | u32 | runtime | manager frames since the death (real time) |
+| `+0x18C` | `0x54A0F8C` | FASTMAX | f32 | 3.0 | time scale after the slow part (fast forward) so that the death animation ends sooner |
+| `+0x190` | `0x54A0F90` | FASTEND | u32 | 240 | frames after the death at which the time scale returns to 1.0 |
 | `+0xA0` | `0x54A0EA0` | AIMMIN2 / AIMMAX2 / AIMCOS / AIMWMIN | 4 x f32 | 0.09 / 3600 / 0.3 / 0.05 | target distance window (0.3 m..60 m, squared), min cos(angle), AIMWMIN unused |
 | `+0xB0` | `0x54A0EB0` | ONE / EPS / BETA / GAMMA | 4 x f32 | 1.0 / 1e-6 / 0.3 / 0.35 | constants; BETA = aim easing; GAMMA unused |
 | `+0xC0` | `0x54A0EC0` | MASKXYZ | 4 x u32 | `FFFFFFFF x3, 0` | mask |
