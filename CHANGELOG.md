@@ -13,7 +13,7 @@ The FPS head camera now handles dying. Everything new is part of the `_fps` prof
 - **Look at the killer after death** (new option): from the moment of death the view stays on the enemy that killed the player (the locked-on target, else the nearest living character within 20 m) instead of tumbling with the head.
 - **Death slow motion** (new option): the death plays at normal speed until the "YOU DIED" screen arrives, then every character drops to 5 % speed for about 6 seconds (a GTA-style effect). It scales the per-character speed factor read at `0x1E196BB`; tunable phases (`PH1SCALE`, `PH1END`, `PH2SCALE`, `PH2END`).
 - **Close-character guard** (in "FPS head camera"): when the camera would be inside a living character's body (visceral attacks after a parry put the player inside the victim) the game's own camera is used for a moment.
-- New demonstration clip as the README hero image and first item of the gallery; an axeman clip.
+- New demonstration clip as the README hero image and first item of the gallery.
 - `docs/known-issues.md`: warning and recovery steps for a save flagged as broken after closing the game with a debugger attached.
 
 ### Changed
