@@ -25,6 +25,16 @@
 - **Toggling:** the camera can be switched off and on at any time (double-click the touchpad, or the cheat menu). If something looks wrong, that resets it. Each touchpad click also opens/closes the game's personal-effects (gesture) menu for a moment.
 - **Animation rate:** where the game updates animation at 30 Hz the head bobbing is interpolated; it is smooth but follows the animation, not the display refresh.
 
+## VRR tools (`tools/vrr`)
+
+* **Black screen for a second or two** when the game starts (the HDMI output switches to VRR) and again briefly when it is closed. Expected.
+* **48 FPS floor.** The VRR window is 48-60 Hz. Below 48 FPS the display leaves it, the refresh readout jumps and flicker is possible on some panels. Keep `fps_cap.py` caps at 48 or more.
+* **Not persistent.** ps5debug and `vrr_watch.py` must be started again after every console restart, and `vrr_watch.py` must be running **before** the game starts (otherwise use `avctl_attr.py set` and press the PS button and go back to the game).
+* **Writes into a system process** (`SceSysAvControl.elf`). Narrow and reversible, but at your own risk; a console restart clears everything. Never read system-library code inside the game process (execute-only memory, can crash the game).
+* **Save data was once flagged broken during the test session** (no debugger attached, cause unknown, not shown to be related to these tools; a later 29-minute VRR session with 237 save mounts and a 12-minute control session without VRR did not repeat it, but the VRR session logged three transient mount errors that recovered on retry, see [vrr.md](vrr.md#save-data-during-the-tests)). Back up the save data before use; if the game reports "The save data is corrupted", choose **NO**, close the game and clear the `is_broken` flag as described in the section above about debuggers.
+* **Firmware 12.40 only** (tested). On other firmware the table window of `vrr_watch.py` may differ; the tool warns instead of writing blindly.
+* **No 120 Hz**, and `fps_cap.py` works only for Bloodborne v1.09 with the 60 FPS mod on. Other PS4 games, other displays and a base PS5 are untested.
+
 ## Not supported / out of scope
 
 - Anything online. Use the mods offline.

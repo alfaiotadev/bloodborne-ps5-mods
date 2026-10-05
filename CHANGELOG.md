@@ -4,6 +4,26 @@ All notable changes to this repository. Dates are release dates; the versions fo
 
 > **Tested only on firmware 12.40 with a PS5 Pro.** See [docs/compatibility.md](docs/compatibility.md).
 
+## [1.2.0] - 2026-10-05
+
+VRR for PS4 games. This release adds host tools and documentation; **the cheat file, the profiles and the patched onionHEN are unchanged** from 1.1.0.
+
+### Added
+- **`tools/vrr/vrr_watch.py`**: makes the console drive a VRR display (48-60 Hz) while a PS4 game runs. It watches the per-app capability table of the system video service (`SceSysAvControl.elf`) through ps5debug and sets the "VRR supported" bit (`attr` 0x082E0057 -> 0x08AE0057) of a new PS4 session before the console chooses the video mode. The screen goes black for a second or two at launch (HDMI mode change). Start it before the game; nothing is stored on the console.
+- **`tools/vrr/fps_cap.py`**: caps Bloodborne at a frame rate inside the VRR window (for example 55 FPS, vsync stays on) so the display refresh visibly follows the game; `off` restores 60 FPS. Bloodborne v1.09 with the 60 FPS mod only; refuses to run otherwise.
+- **`tools/vrr/avctl_attr.py`**: manual `scan` / `set` / `restore` of the capability record for experiments.
+- `docs/vrr.md` (results, usage, safety, limits) and `docs/agents/75-avcontrol-vrr.md` (the capability record bits, the mode enum and structure, log lines, the frame timer, experiments, open questions, hazards); registry entries for the frame timer and the vsync site.
+
+### Results (PS5 Pro, firmware 12.40, Bloodborne, one 1080p FreeSync Premium monitor)
+- Without the tool the display stayed at a fixed 60 Hz at 45 and 30 FPS, although the PS5 option *Apply to Unsupported Games* was on. With the tool the console logged `VRR(peg:60 range:48 - 60)` and the monitor's refresh readout followed a 55 FPS cap; the picture was described as smooth. Below 48 FPS the readout jumped.
+- Save data: one early test session ended with the save flagged as broken (no debugger, cause not found); a later 29-minute VRR session (237 save mounts, three transient mount errors that recovered on retry) and a 12-minute control session without VRR (157 mounts, no errors) did not repeat it. Details and the small-sample caveat in `docs/vrr.md`.
+
+### Limits
+- **Back up your save data before using the tools** (see above); the cause of the one broken-save event is unknown.
+- **No 120 Hz.** The game never requests a video mode; allowing HFR in the record did not change the mode.
+- Needs a host computer and ps5debug after every console restart; firmware-specific table window (the watcher warns when the layout is not recognised); only Bloodborne and one display were tested.
+- A frame-rate unlock experiment (vsync off, 110-140 FPS, correct game speed) is documented in the agent notes but **not shipped**: the display stays at 60 Hz, so it only tears.
+
 ## [1.1.0] - 2026-10-05
 
 The FPS head camera now handles dying. Everything new is part of the `_fps` profile (and optional in the cheat menu); the stable mods are unchanged.

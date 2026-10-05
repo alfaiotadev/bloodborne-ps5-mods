@@ -34,6 +34,8 @@ Highlights: 60 FPS, no motion blur / chromatic aberration, sharper anti-aliasing
 
 Details, numbers and the trade-offs of each mod: [docs/features.md](docs/features.md).
 
+**Not a cheat: VRR for PS4 games (host tool, new in 1.2.0).** [`tools/vrr`](tools/vrr/README.md) makes the console drive a VRR display at 48-60 Hz while a PS4 game runs, which the built-in *Apply to Unsupported Games* option did not do for Bloodborne in the tested setup. It needs the ps5debug payload and a host computer running a small Python script, writes only into a system process and keeps nothing after a restart. It does **not** give more than 60 Hz. See [docs/vrr.md](docs/vrr.md) for results, limits and safety; tested on one game, one display, firmware 12.40, PS5 Pro.
+
 ## Install in three steps
 
 1. Run a PS5 payload chain with the **patched onionHEN** from this repository on firmware 12.40 ([onionhen/](onionhen/); prebuilt files are on the Releases page). The patch adds what these cheats need: applying cheats at game launch, a safe code-cave allocator, execute-only page handling and the per-cheat `enabled` flag. Stock onionHEN lacks them and has **not** been tested with this cheat file.
@@ -54,6 +56,7 @@ The cheat file is a list of memory patches at fixed virtual addresses inside the
 | `onionhen/` | The patch on top of upstream onionHEN (exec-time apply, screenshot hook, overlay, ...), build notes, checksums of the prebuilt ELFs (the ELFs themselves are on the Releases page). |
 | `tools/mods/` | Generators that produce `cheats/*.json` (`build_cheats.py`) and the verification tools. |
 | `tools/dev/` | Live-memory research and test tools (read/write the running game over ps5debug). |
+| `tools/vrr/` | Host tools that enable VRR (48-60 Hz) for PS4 games and cap Bloodborne's frame rate inside the VRR window ([docs/vrr.md](docs/vrr.md)). |
 | `docs/` | Install guide, feature reference, known issues, compatibility, [research write-ups](docs/research/README.md) and [agent documentation](docs/agents/00-orientation.md). |
 | `site/` | Source of the GitHub Pages feature site. |
 | `AGENTS.md` | Entry point for AI coding agents that want to continue the work. |

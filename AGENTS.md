@@ -42,6 +42,7 @@ How a mod gets into the game: **generator** (`tools/mods/make_x_mod.py`) -> `bui
 * **Do not write to the console memory or files you were not asked to touch.** Back up the console's cheat file (`curl` download) before replacing it; keep old ELFs under other names; never delete what you cannot restore.
 * **Never print or log tokens, passwords or keys** (the repository has none; never create `.env` files with secrets in the tree; never commit secrets). ps5debug has no authentication: trusted network only.
 * **Do not toggle AI/enemy cheats at runtime while testing other mods**: toggling "enemy movement" crashed the game in its own `CSChrThread4` within seconds, repeatedly. Apply such cheats before launch or not at all.
+* **System processes are not game memory.** `SceSysAvControl.elf` can be read and, narrowly, written through ps5debug ([docs/agents/75-avcontrol-vrr.md](docs/agents/75-avcontrol-vrr.md)); write only the fields you identified, read back, and expect that a console restart is the only reset. Never read the code of system libraries inside the game process (execute-only, can crash the game).
 * **Keep a backup of the save data** before experiments that can crash the game (a crash during an autosave can damage a save). Play offline while memory is modified.
 * A **console crash dialog must be dismissed** by the user; left open it can make the console shut itself down.
 * **No game assets, no memory dumps, no copyrighted binaries** in the repository (dumps are game code: `.gitignore` them; payload ELFs are only referenced by checksum).
@@ -117,9 +118,10 @@ Read [docs/agents/70-onionhen-cheat-engine.md](docs/agents/70-onionhen-cheat-eng
 | [50-aa-and-graphics.md](docs/agents/50-aa-and-graphics.md) | The game's DLAA pass, FXAA/TAA/aniso/DOF/LOD/resolution results (incl. negative), measurement method, ideas. |
 | [60-player-and-world.md](docs/agents/60-player-and-world.md) | Object graph, position/warp, model/pose, enemies, time step, input, hazards, ideas. |
 | [70-onionhen-cheat-engine.md](docs/agents/70-onionhen-cheat-engine.md) | onionHEN structure, our patch, exec-time apply, cheat JSON semantics and **hazards**, build/deploy, stock vs patched. |
+| [75-avcontrol-vrr.md](docs/agents/75-avcontrol-vrr.md) | The system video service (`SceSysAvControl.elf`): per-app capability record and its bits, mode enum/structure, how VRR 60 was enabled for a PS4 game, the frame timer behind `fps_cap.py`, the (unshipped) vsync-off experiment, open questions (120 Hz), hazards. |
 | [80-experiments-log.md](docs/agents/80-experiments-log.md) | Methodology, evidence rules, table of experiments with outcomes. |
 | [90-open-questions.md](docs/agents/90-open-questions.md) | Repository inconsistencies to fix, verification gaps, platform coverage, feature and graphics ideas, each with a first probe. |
-| [registry.json](docs/agents/registry.json) | Machine-readable `{schema, game, addresses, structures, caves, hooks, data_block}`. |
+| [registry.json](docs/agents/registry.json) | Machine-readable `{schema, game, addresses, structures, caves, hooks, data_block, system_processes}`. |
 | [02-tooling.md](docs/agents/02-tooling.md) | Redirect stub (old name referenced by two generator docstrings). |
 
 Reading order for a cold start: this file -> `00` -> `30` (if you will write code) or `20` (if you will probe) -> the subsystem file -> `90`.

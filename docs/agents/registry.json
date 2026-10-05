@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated_by": "caves, hooks and data_block are derived from tools/mods/make_*_mod.py constants; addresses and structures are curated from live probes and static analysis. Regenerate caves/hooks/data_block whenever a generator changes. Updated for the mode-dependent FOV, the two-chunk manager cave and the XOM-safe pad check.",
+ "generated_by": "caves, hooks and data_block are derived from tools/mods/make_*_mod.py constants; addresses and structures are curated from live probes and static analysis. Regenerate caves/hooks/data_block whenever a generator changes. Updated for the mode-dependent FOV, the two-chunk manager cave and the XOM-safe pad check. The system_processes section and the frame-timer / vsync-site addresses were added for the VRR tools (curated from live probes and static analysis of a memory dump).",
  "game": {
   "title": "Bloodborne: Game of the Year Edition",
   "title_id": "CUSA03173",
@@ -853,6 +853,51 @@
    "description": "Second import slot into libScePad (module offset 0x13C0); used only to verify the module layout (distance to G_ScePadImportSlot = 0x990).",
    "confidence": "confirmed-live",
    "source": "touchpad double-click toggle confirmed on hardware (cold start); crash analysis showed XOM on libScePad code"
+  },
+  {
+   "name": "G_FrameTimerPtr",
+   "address": "0x59404F8",
+   "kind": "global_ptr",
+   "size": 8,
+   "description": "Pointer to the frame-timer object ([obj+0x18] target frame time, [obj+0x260] ring index, [obj+0x60+i*16] ring of 32 frame durations in microseconds, [obj+0x264] measured last frame time, [obj+0x28] current timestamp us).",
+   "confidence": "confirmed-live",
+   "source": "read live; ring and fields measured with tools/vrr/fps_cap.py"
+  },
+  {
+   "name": "FrameTimer_Update",
+   "address": "0x2434770",
+   "kind": "function",
+   "size": null,
+   "description": "FrameTimer::Update: measures the frame, keeps the ring, runs the software limiter (sleeps while more than ~5 ms remain, then spins). Rewrites [obj+0x18] every frame from code immediates.",
+   "confidence": "static-only",
+   "source": "disassembly of the dump; behaviour confirmed live"
+  },
+  {
+   "name": "FrameTimer_TargetImm",
+   "address": "0x2434883",
+   "kind": "code_imm32",
+   "size": 4,
+   "description": "imm32 of `mov dword [r12+0x18], imm32` for the default mode: 3c888889 (1/60 s) with the 60 FPS mod, 3d088889 (1/30 s) stock. Patch this to change the limiter target (fps_cap.py); a write to the field is undone within a frame.",
+   "confidence": "confirmed-live",
+   "source": "live write, frame times measured"
+  },
+  {
+   "name": "Present_VsyncSite",
+   "address": "0x25B3271",
+   "kind": "code",
+   "size": 3,
+   "description": "`mov esi, r12d` before the tail jump to Present (0x2AD5DD0 -> 0x2AD6E50). 44 89 e6 = vsync flip; 48 31 f6 (xor rsi, rsi) = interval 0 = immediate (HSYNC) flip. The unlock experiment writes it; fps_cap.py requires the original bytes.",
+   "confidence": "confirmed-live",
+   "source": "live write, frame rate 60 -> 110-140 FPS, display stayed 60 Hz"
+  },
+  {
+   "name": "Present_FlipModeFunction",
+   "address": "0x2AD6E50",
+   "kind": "function",
+   "size": null,
+   "description": "Present: waits until fewer than numBuffers-1 flips are pending (GetFlipStatus + WaitEqueue), flipMode = (interval != 0) ? VSYNC(1) : HSYNC(2).",
+   "confidence": "static-only",
+   "source": "disassembly of the dump"
   }
  ],
  "structures": [
@@ -3143,6 +3188,72 @@
    "report_stride": "0xE0",
    "touchpad_mask": "0x100000",
    "double_click_window_frames": 30
+  }
+ },
+ "system_processes": {
+  "SceSysAvControl.elf": {
+   "description": "System video service that decides the HDMI output mode; keeps a per-app capability record (attr). Readable and narrowly writable through ps5debug on firmware 12.40. See docs/agents/75-avcontrol-vrr.md.",
+   "tested_only_on": "PS5 Pro, firmware 12.40, Bloodborne CUSA03173 v01.09, one 1080p FreeSync Premium monitor",
+   "memory": {
+    "text": "0x400000-0x4ac000",
+    "rodata": "0x4ac000-0x4ec000",
+    "data_bss": "0x4ec000-0x560000",
+    "shared_mapping": "/SceAvControl (16 KB, 0x200044000 in the tested session)"
+   },
+   "attr": {
+    "ps4_default": "0x082E0057",
+    "vrr_enabled_value": "0x08AE0057",
+    "entry_layout": "three dwords {key (pid or 0xFFFFFFFE), appid, attr}; two adjacent entries per app; table in data (window 0x4F9000-0x4FA000) and in /SceAvControl",
+    "bits": {
+     "0x00800000": {
+      "meaning": "VRR supported (TypeA; with 0x01000000 TypeB)",
+      "confidence": "confirmed-live"
+     },
+     "0x04000000": {
+      "meaning": "boost (VRR for unsupported games)",
+      "confidence": "inferred"
+     },
+     "0x00040000": {
+      "meaning": "HFR (120 Hz) forbidden",
+      "confidence": "inferred; clearing it alone changed nothing"
+     },
+     "0x00000040": {
+      "meaning": "HDR forbidden",
+      "confidence": "static-only"
+     },
+     "0x08000000": {
+      "meaning": "8K forbidden",
+      "confidence": "static-only"
+     },
+     "0x00080000": {
+      "meaning": "app type GAME",
+      "confidence": "static-only"
+     },
+     "0x00000200": {
+      "meaning": "app suspended",
+      "confidence": "static-only"
+     }
+    }
+   },
+   "refresh_enum": {
+    "3": "59.94 Hz (confirmed-live)",
+    "6": "29.97 Hz (static-only)",
+    "0xd": "119.88 Hz (static-only)",
+    "vrr_flag": "0x8000 OR'd on the enum (0x8003 VRR 60 confirmed-live; 0x800d VRR 120 static-only)"
+   },
+   "functions_static_only": {
+    "0x42ebc0": "app info log printer (decodes attr)",
+    "0x42f430": "attr composer",
+    "0x42f5f0": "per-session attr computation (logs 'Entry appId ... supplementaryInfo')",
+    "0x42e710": "title-workaround check DISABLE_VRR_APPLY_TO_UNSUPPORTED_GAME (id 0x5a)",
+    "0x413de0": "new session (logs 'New session(appid pid) system bc attr')",
+    "0x4305c0": "attr lookup by (key, appid)",
+    "0x432170": "requested-vs-current mode validator ('119.88Hz request is converted to VRR 119.88Hz')",
+    "0x40ccb0": "video request handler ('v-request')",
+    "0x443e40": "IPC change-output-mode handler",
+    "0x424b6d": "prints the video line and 'VRR(peg range) capable(...)'",
+    "0x43f160": "large mode selection that reads the HFR/VRR/TypeB/boost bits (not analysed)"
+   }
   }
  }
 }

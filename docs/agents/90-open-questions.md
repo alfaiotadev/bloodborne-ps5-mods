@@ -118,6 +118,17 @@ python3 tools/dev/mods-live/code_patch.py 54A0E70 ?16     # NOCOLL MODE AIM FACE
 | F5 | An offline emulator test of caves (for example Unicorn) | feed synthetic WorldChrMan/pose memory, check outputs |
 | F6 | Regenerate `registry.json` from the generators automatically | add a script under `tools/mods` that emits caves, hooks and data-block fields (they are derivable) |
 
+## H. VRR and display output
+
+| # | Idea | First probe |
+|---|---|---|
+| H1 | 120 Hz (VRR 48-120) for a PS4 game | the game requests no mode; synthesize a request for refresh enum `0xd` / `0x800d` (see [75](75-avcontrol-vrr.md) section 7, V-A) |
+| H2 | The boost bit `0x04000000` instead of the VRR bit | same procedure as V3 |
+| H3 | A persistent implementation in the console-side payload (onionHEN app-launch event) | write the same dwords with its kernel read/write primitives |
+| H4 | Why *Apply to Unsupported Games* does not engage for Bloodborne | read the app type word and flag the composer receives |
+| H5 | Other PS4 games, other displays/TVs, base PS5, other firmware | repeat V1-V5 and record the log lines |
+| H6 | Behaviour below 48 FPS | measure what the console and the display do |
+
 ## G. Documentation tasks
 
 * Keep [registry.json](registry.json) in sync when a generator changes (cave sizes, hook bytes, data fields are derived from `tools/mods/make_*_mod.py`).

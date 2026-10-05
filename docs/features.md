@@ -48,6 +48,10 @@ Companion options (both need the head camera):
 - **Body faces the view** - rotates the displayed model so the body follows the camera direction instead of the movement direction (strafing and backpedalling still work because only the display changes). It acts **only while the head camera is on**: switching to third person (touchpad double-click) restores the normal body. **Side effect: the coat/hood cloth disappears while it is on** (it returns when the camera is off or the option is switched off). Tested from a cold start on a PS5 Pro; it is enabled in the `_fps` profile.
 - **Aim at the lock-on target** - the game's lock-on camera looks at the player's pivot, not at the enemy; with the camera at the head that puts the target above the centre line. This option reads the locked target from the camera manager and keeps the view pointed at it (the offset is stored in camera space and stays after releasing the lock until you turn the camera). Experimental: close-range strafing can still twitch. Other people are invited to build better profiles on top of it (see [agents/90-open-questions.md](agents/90-open-questions.md)).
 
+## VRR for PS4 games (host tool, not a cheat)
+
+Not part of the cheat file: [`tools/vrr`](../tools/vrr/README.md) enables VRR (48-60 Hz) for the running PS4 game by editing the system video service's capability record, and caps Bloodborne's frame rate inside the VRR window. Results, usage, limits and safety: [vrr.md](vrr.md). Tested only on firmware 12.40, a PS5 Pro, Bloodborne and one display; it does not give more than 60 Hz.
+
 ## Profiles
 
 `cheats/profiles/` holds ready-made selections (default / quality / fps); see [install.md](install.md). They only differ in which entries are enabled and in the FOV multiplier.

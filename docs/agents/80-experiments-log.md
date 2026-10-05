@@ -130,6 +130,17 @@ Legend: **+** worked and shipped or kept; **-** negative; **~** partial or super
 | H28 | Guard by horizontal feet-to-feet distance < 0.7 m | **-** fired for invulnerable map objects (HP 999/9999) next to the player: the camera jumped to the normal view "for no reason" |
 | H29 | Guard by 3D distance camera - torso point (feet + 1.0 m) < 0.5 m, held 90 frames, living characters only | **+** maintainer: "good now"; visceral attacks use the game's camera, normal play is unaffected |
 | H21 | World bone arrays not under `[mod+0x18/0x20/0x5F8]` in one session (holders under `[mod+0x10]` at `+0x460/0x470/0x478`) | **~** the cave scans these too (`HOLD` flag `0x10000`); that layout has not been seen again, so the path is untested live |
+| V1 | 10-05 | PS4 game limited to 45/30 FPS with vsync on; monitor refresh readout and system log | **-** readout stayed at 60 Hz, no ALLM/VRR event in the log: the display was not driven with VRR although *Apply to Unsupported Games* was on | the monitor's own readout is a cheap independent check |
+| V2 | 10-05 | Locate and write the per-app capability record in `SceSysAvControl.elf` | **+** table found by scanning for `{appid, 0x082e0057}`; writes to the service work | see [75](75-avcontrol-vrr.md) |
+| V3 | 10-05 | `attr` 0x082e0057 -> 0x08ae0057 at a 55 FPS cap, Home and back | **+** `VRR(peg:60 range:48 - 60)`, `ref:0x8003(48-60)`, readout followed 55 Hz, smooth; no game restart needed; 45 FPS (below the window) jumped | the VRR bit is the switch |
+| V4 | 10-05 | `attr` 0x08aa0057 (HFR allowed) | **-** no `set_mode`, mode unchanged | PS4 games request no mode, permission alone is not enough |
+| V5 | 10-05 | Watcher rewrites new entries at 50 Hz, then launch | **+** VRR 48-60 from launch, black screen for a second or two | `tools/vrr/vrr_watch.py` |
+| V6 | 10-05 | Vsync off (`0x25B3271` interval 0) plus limiter 1 ms / 1/120 s | **~** 60 -> 110-140 FPS (by render resolution), game speed correct (3.99 vs 3.97 m/s), but the display stayed at 60 Hz: tearing, no smoothness | not shipped |
+| V7 | 10-05 | Frame-timer facts: limiter target rewritten every frame from a code immediate; ring of the last 32 frame durations | **+** a data write is undone within a frame; patch `0x2434883`; the ring gives every frame | `fps_cap.py` |
+| V8 | 10-05 | Save-data log analysis of a session that ended with `is_broken = 1` (no debugger) | **-** first failure mid-session (`0x809f8057`, then `0x809f8709` on the immediate retry); cause not found | back up the save before sessions |
+| V9 | 10-05 | 29-minute VRR session, shipped watcher, autosave-heavy, monitor power-cycled twice | **+** 237 mounts, 3 transient `0x809f805d` (recovered), flag stayed 0, VRR re-established after each reconnect | small sample, see [75](75-avcontrol-vrr.md) |
+| V10 | 10-05 | Control session without VRR or tools, about 12 minutes | **+** 157 mounts, 0 errors | no causal claim possible |
+| V11 | 10-05 | App suspend duration with and without VRR | **~** 1.83-1.85 s with VRR, 77-84 ms without (four measurements) | the mode change back to 59.94 Hz |
 
 ### 3.7 Not (yet) done
 

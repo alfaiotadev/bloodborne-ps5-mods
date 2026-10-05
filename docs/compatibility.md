@@ -22,3 +22,7 @@
 - Cheats are applied at game start (`exec` time) and can be toggled in the onionHEN Toolbox. If the game crashes at start-up, switch the offending mod off by editing or removing `/data/OnionHEN/cheats/CUSA03173_01.09.json`.
 - A crash dialog on the console must be dismissed; leaving it open can make the console shut itself down.
 - Use these mods only on a console you own, with a game copy you own. Online play with modified game memory may violate the terms of service of the platform; we recommend playing offline.
+
+## VRR tools
+
+The VRR tools in [`tools/vrr`](../tools/vrr/README.md) were tested on the same console and firmware (PS5 Pro, 12.40) with Bloodborne and one HDMI monitor (1080p, FreeSync Premium, the console reported VRR range 48-240 Hz, ALLM supported; PS5 settings VRR, 120 Hz output and ALLM on Automatic, *Apply to Unsupported Games* on). Other PS4 games, other displays or TVs, other firmware and the base PS5 are untested. Details: [vrr.md](vrr.md).
