@@ -2313,8 +2313,8 @@
     "name": "OFF_U",
     "type": "f32",
     "size": 4,
-    "default": 0.17,
-    "description": "Up offset in metres along the camera up row (0.17).",
+    "default": 0.30,
+    "description": "Up offset in metres along the camera up row (0.30).",
     "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
    },
    {
@@ -2768,8 +2768,8 @@
     "name": "FPSFOV",
     "type": "f32",
     "size": 4,
-    "default": 0.0261799,
-    "description": "Radians per FOV degree used while the head camera is on (x1.5 default). The cave copies the active value (FPSFOV if MODE else TPFOV) into the Wide-FOV constant at 0x54A0500 every frame.",
+    "default": 0.0314159,
+    "description": "Radians per FOV degree used while the head camera is on (x1.8 default). The cave copies the active value (FPSFOV if MODE else TPFOV) into the Wide-FOV constant at 0x54A0500 every frame.",
     "initialised_by": "cheat entry at 0x54A0E80"
    },
    {

@@ -14,7 +14,7 @@
 1. Copy `cheats/CUSA03173_01.09.json` from this repository to the console as
    `/data/OnionHEN/cheats/CUSA03173_01.09.json` (the folder already exists once onionHEN has run; create it if it does not).
    The file name must match the title id and version exactly.
-   **Profiles:** `cheats/profiles/CUSA03173_01.09_quality.json` (Wide FOV x1.3 and DLAA threshold 0.3 on top of the defaults) and `cheats/profiles/CUSA03173_01.09_fps.json` (the same with FOV x1.5, the experimental FPS head camera with its death camera and death slow motion, and the lock-on aim). Pick one and copy it to the path above under the name `CUSA03173_01.09.json`. Any combination can be generated with `tools/mods/build_cheats.py` (see its docstring); the FOV multiplier is `--fov-scale`.
+   **Profiles:** `cheats/profiles/CUSA03173_01.09_quality.json` (Wide FOV x1.3 and DLAA threshold 0.3 on top of the defaults) and `cheats/profiles/CUSA03173_01.09_fps.json` (the same with FOV x1.8 in first person, the experimental FPS head camera with its death camera and death slow motion, and the lock-on aim). Pick one and copy it to the path above under the name `CUSA03173_01.09.json`. Any combination can be generated with `tools/mods/build_cheats.py` (see its docstring); the FOV multiplier is `--fov-scale`.
 2. Start Bloodborne. onionHEN applies the cheats that are marked enabled in the file **at launch** (the process is paused for an instant while the patches are written).
 3. Open the cheat menu to toggle the optional mods on or off. The shortcut is configured in onionHEN's `config.ini` on the console (`/data/OnionHEN/config.ini`, section `[shortcuts]`, key `cheats_menu`; values: `off`, `r3_l3`, `l2_triangle`, `long_options`, `long_share`, `share`).
 
@@ -24,7 +24,7 @@
 
 - Switch on **FPS head camera (experimental)** after the game has loaded into the world (it also works if it is enabled at launch). The camera jumps to the character's head.
 - **Aim at the lock-on target** and **body faces the view** are extras that need the head camera. Read the notes in [features.md](features.md) and [known-issues.md](known-issues.md) first (the second one hides the coat/hood cloth while it is on).
-- **Double-click the touchpad** (two clicks within half a second) to switch between the first-person and the normal camera at any time; the field of view follows (x1.3 third person, x1.5 first person in the `_fps` profile). The game's personal-effects menu flashes open and closed with the clicks.
+- **Double-click the touchpad** (two clicks within half a second) to switch between the first-person and the normal camera at any time; the field of view follows (x1.3 third person, x1.8 first person in the `_fps` profile). The game's personal-effects menu flashes open and closed with the clicks.
 - If the camera ever misbehaves (for example after an unusual cutscene), double-click the touchpad twice (off, then on) or toggle **FPS head camera** in the cheat menu: that resets its state.
 
 ## Updating and uninstalling

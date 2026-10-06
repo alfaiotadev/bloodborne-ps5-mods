@@ -38,10 +38,10 @@ CHEAT ENTRY RULES (see build_cheats.py): onionHEN keeps every entry in 1024-byte
 long caves into 1000-byte chunks; caves/data get off == on (onionHEN refuses to toggle a mod off when an off value is empty); the cave's own state (ARROFF D+0x14, COOL D+0x2C, HOLD D+0x3C)
 is deliberately NOT part of any entry so that toggling the cheat never resets it.  Apply order: data, caves, then hooks last; MODE last of all.
 
-DATA BLOCK 0x54A0E00: +0x04 BONEOFF i32 (68*0x30), +0x08/0C/10 R/U/F (0, 0.17, 0.32 m), +0x14 ARROFF, +0x18 LIMIT (100.0), +0x1C MINN (0.5), +0x20/24/28 YMIN/YMAX/R2, +0x2C COOL,
+DATA BLOCK 0x54A0E00: +0x04 BONEOFF i32 (68*0x30), +0x08/0C/10 R/U/F (0, 0.30, 0.32 m), +0x14 ARROFF, +0x18 LIMIT (100.0), +0x1C MINN (0.5), +0x20/24/28 YMIN/YMAX/R2, +0x2C COOL,
 +0x30 HMIN (1.25), +0x34 SNAP2 (1.0), +0x38 ALPHA (0.5), +0x3C HOLD, +0x40 LASTH, +0x50 LASTO, +0x60 OFFS, +0x70 NOCOLL, +0x71 MODE, +0x72 AIM, +0x73 FACE2, +0x75 PADTOG, +0x76 PADPREV,
 +0x74 DEADF, +0x78 FRAME, +0x7C PADLAST, +0x80 FPSFOV, +0x84 TPFOV (radians per FOV degree, copied into the Wide-FOV constant 0x54A0500 every frame), +0x90 FALLV, +0xA0..0xBF aim constants, +0xC0..0xFF masks, +0x118 TR, +0x11C TU, +0x120 FPREV, +0x130 DECAY, MOTCOS, TINY, +0x140 DALPHA, +0x144 DEPS, +0x148 HA, +0x150 FS, +0x160 US, +0x170 DFLOOR, +0x174 DFLR, +0x178 TSCALE, +0x17C PH1SCALE, +0x180 PH1END, +0x184 SLOWG, +0x188 DCNT, +0x18C PH2SCALE, +0x190 PH2END.
-Usage: python3 make_head_camera_mod.py [--u 0.17] [--f 0.32] [--r 0.0] [--bone 68]   -> prints a JSON list with the three mods (not chunked; use build_cheats.py for release files)."""
+Usage: python3 make_head_camera_mod.py [--u 0.30] [--f 0.32] [--r 0.0] [--bone 68]   -> prints a JSON list with the three mods (not chunked; use build_cheats.py for release files)."""
 import json, math, struct, sys
 from make_fov_mod import CONST_ADDR as FOVC       # the Wide-FOV mod's float constant (radians per FOV degree)
 from caves import Asm, rip, vss, vld, vst, hook5, hook
@@ -439,7 +439,7 @@ def aimconst():
 
 def entry(addr, on, off=b""): return {"offset": "%08X" % addr, "on": on.hex(), "off": off.hex(), "absolute": True}
 
-def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.5, tp_fov=1.3, ph1_scale=1.0, ph1_end=300, ph2_scale=0.05, ph2_end=720, slow_g=0.25, lock_at=0, kill_range=20.0, kill_height=1.3, kill_alpha=0.10, near_r=0.5, near_hold=90, near_torso=1.0):
+def build(r=0.0, u=0.30, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax=2.4, r2=2.25, hmin=1.25, snap2=1.0, alpha=0.5, fallh=1.53, fps_fov=1.8, tp_fov=1.3, ph1_scale=1.0, ph1_end=300, ph2_scale=0.05, ph2_end=720, slow_g=0.25, lock_at=0, kill_range=20.0, kill_height=1.3, kill_alpha=0.10, near_r=0.5, near_hold=90, near_torso=1.0):
     # Tunables are written in three pieces on purpose: ARROFF (D+0x14), COOL (D+0x2C) and HOLD (D+0x3C) are the cave's own cached state (working pose holder/slot, scan back-off).  They start at
     # zero (cave memory is zeroed), are maintained by the cave and must NOT be rewritten when the cheat is toggled in a running game - a reset would force a full memory scan in the live process.
     cfg_a = struct.pack("<ifff", bone * 0x30, r, u, f)                                       # D+0x04: BONEOFF, R, U, F
@@ -462,4 +462,4 @@ def build(r=0.0, u=0.17, f=0.32, bone=68, limit=100.0, minn=0.5, ymin=-0.5, ymax
 if __name__ == "__main__":
     a = sys.argv
     val = lambda k, d: float(a[a.index(k) + 1]) if k in a else d
-    print(json.dumps(build(val("--r", 0.0), val("--u", 0.17), val("--f", 0.32), int(val("--bone", 68))), indent=1))
+    print(json.dumps(build(val("--r", 0.0), val("--u", 0.30), val("--f", 0.32), int(val("--bone", 68))), indent=1))

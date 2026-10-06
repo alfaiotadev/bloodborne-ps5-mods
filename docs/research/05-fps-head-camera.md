@@ -19,7 +19,7 @@ the history: what was tried, every crash and its cause, and what failed.
 | **FPS head camera: body faces the view (needs head camera)** | off | One byte: `FACE2 = 1`. Rotates the *displayed* body towards the camera direction. Side effect: coat and hood cloth parts disappear (section 8). |
 | **FPS head camera: aim at the lock-on target (needs head camera)** | off | One byte: `AIM = 1`. While locked on, the view is aimed from the head at the target (section 9). |
 
-Settings in the cheat file: offsets right / up / forward from the head bone `R/U/F = 0 / 0.17 / 0.32` (forward was 0.22 until the final tests: with the body-facing option the model's face jumped in front of the camera when walking forward/backward; 0.32 fixed it)
+Settings in the cheat file: offsets right / up / forward from the head bone `R/U/F = 0 / 0.30 / 0.32` (up was 0.17 up to v1.1.0 and was raised after play-testing: the view felt too low and small; forward was 0.22 until the final tests: with the body-facing option the model's face jumped in front of the camera when walking forward/backward; 0.32 fixed it)
 m, height floor `HMIN = 1.25` m above the model origin, smoothing `ALPHA = 0.5`.
 
 Not in the release: the pose-lock / call-service hook, the squeeze-hold, the old state-writing "FACE"
@@ -176,7 +176,7 @@ All fields in `D = 0x54A0E00`. "JSON" = written by the cheat file; "run" = writt
 |--------|---------|------|------|---------|---------|
 | +0x04 | `0x54A0E04` | `BONEOFF` | i32 | `0xCC0` (68 x 0x30) | Head bone offset in the array |
 | +0x08 | `0x54A0E08` | `OFF_R` | f32 | 0.0 | Camera offset along the game's right row (m) |
-| +0x0C | `0x54A0E0C` | `OFF_U` | f32 | 0.17 | ... up row |
+| +0x0C | `0x54A0E0C` | `OFF_U` | f32 | 0.30 | ... up row |
 | +0x10 | `0x54A0E10` | `OFF_F` | f32 | 0.32 | ... forward row |
 | +0x14 | `0x54A0E14` | `ARROFF` | i32 | `0x320` initial; run: last working slot | Slot offset inside the holder |
 | +0x18 | `0x54A0E18` | `LIMIT` | f32 | 100.0 | Squared max head-to-game-camera distance |
@@ -225,7 +225,7 @@ judged on the console; the other effects in the table follow from the code.
 
 | Value | Effect of raising it | Notes |
 |-------|----------------------|-------|
-| `OFF_U` (0.17) | Camera higher above the head-bone position | With 0.17 / 0.22 the weapons are visible in the hands and the hood is out of the picture (maintainer's choice) |
+| `OFF_U` (0.30) | Camera higher above the head-bone position | Default 0.30 since v1.2.0 (0.17 before; the view felt too low). With 0.17 / 0.22 the weapons are visible in the hands and the hood is out of the picture; 0.30 together with FOV x1.8 keeps the weapons well visible (maintainer's choice) |
 | `OFF_F` (0.32) | Camera further forward | The forward shift that keeps the hood and the face out of the picture (0.22 let the face poke in front of the camera when walking) |
 | `HMIN` (1.25) | Camera never lower than origin + `HMIN` | Must stay below the standing head height (about 1.53 m) or the floor acts while walking |
 | `ALPHA` (0.5) | Faster smoothing (less lag, more visible 30 Hz stepping) | 1.0 = no smoothing |
@@ -377,5 +377,5 @@ roll and the chase lag (rows 3-5 above) led directly to the head-bone idea.
 ## Late additions (final release build)
 
 - **Touchpad double-click toggle.** The game's touchpad click opens its personal-effects menu, so a double-click (two rising edges within 30 frames) was chosen as the switch. The DualSense report ring of libScePad (12 entries of 0xE0 bytes, buttons dword first; L3 0x2, R3 0x4, touchpad 0x100000) lives in the library's data segment; its base is derived from two game import slots (`0x57E5B30` -> libScePad+0xA30, `0x57E4E90` -> +0x13C0). The first version verified the module by comparing function bytes and crashed the game at load because system-library code is execute-only (XOM); found with the debugger (`rip` in the cave, error code 5). The ring was located by diffing the library's RW data while buttons were mashed; the stick bytes and timestamps in each entry identify it as a raw controller report.
-- **Mode-dependent FOV.** The cave copies `FPSFOV` or `TPFOV` into the Wide-FOV constant every frame depending on MODE, so first person can use x1.5 and third person stays at x1.3.
+- **Mode-dependent FOV.** The cave copies `FPSFOV` or `TPFOV` into the Wide-FOV constant every frame depending on MODE, so first person can use x1.8 (x1.5 up to v1.1.0) and third person stays at x1.3.
 - **Delivery constraints found the hard way.** onionHEN limits each cheat entry to 1024 bytes (longer ones are skipped while the hooks are still written, which crashes the game at the first run of the cave - the generator now splits caves into 1000-byte chunks), refuses to switch a mod off when an entry has an empty `off` (the generator sets `off = on` for caves and data), and the cave's own cached state (holder, slot, back-off) must never be part of a written entry because a runtime toggle would reset it and force a full memory scan in the live game.

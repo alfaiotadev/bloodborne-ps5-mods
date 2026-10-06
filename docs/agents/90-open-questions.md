@@ -39,7 +39,7 @@ python3 tools/dev/mods-live/code_patch.py 54A0E70 ?16     # NOCOLL MODE AIM FACE
 * First probe: copy `cheats/profiles/CUSA03173_01.09_fps.json`, set `"enabled": true` on "FPS head camera: body faces the view", upload (backing up the old file), launch the game with `python3 tools/dev/probes/crash_catch.py` running as root, then run the stress list in [30](30-code-cave-playbook.md) section 8.
 * Done when: three clean cold starts with load/death/teleport, then update the docs and the known-issues text.
 
-### B3. Wide FOV and the head camera together (profile `fps`, FOV x1.5)
+### B3. Wide FOV and the head camera together (profile `fps`, FOV x1.8)
 
 * First probe: look at the FOV in the head camera view with weapons drawn, rolls, ladders; measure with `fov_live.py 1.3` versus `1.5` and decide the default; check for stretched weapons at the edges.
 

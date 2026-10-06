@@ -6,7 +6,10 @@ All notable changes to this repository. Dates are release dates; the versions fo
 
 ## [1.2.0] - 2026-10-05
 
-VRR for PS4 games. This release adds host tools and documentation; **the cheat file, the profiles and the patched onionHEN are unchanged** from 1.1.0.
+VRR for PS4 games, and new defaults for the first-person camera. The release adds host tools and documentation; **the patched onionHEN is unchanged** from 1.1.0, and the cheat file and the profiles differ from 1.1.0 only in the two head-camera values listed under *Changed*.
+
+### Changed
+- **FPS head camera defaults: field of view x1.8 (was x1.5) and camera height `OFF_U` 0.30 m (was 0.17 m).** Play-testing with a large weapon (the Whirligig Saw) showed the first-person view too low and the weapon too far outside the picture. Third person is still x1.3. Only two data entries of the head-camera mod change (`0x54A0E04` and `0x54A0E80`), in the default file and in all profiles; nothing else in them differs. Tunable with `make_head_camera_mod.py --u` and `build_cheats.py --fps-fov`; at runtime with the ps5debug writes described in `docs/agents/40-camera-system.md`.
 
 ### Added
 - **`tools/vrr/vrr_watch.py`**: makes the console drive a VRR display (48-60 Hz) while a PS4 game runs. It watches the per-app capability table of the system video service (`SceSysAvControl.elf`) through ps5debug and sets the "VRR supported" bit (`attr` 0x082E0057 -> 0x08AE0057) of a new PS4 session before the console chooses the video mode. The screen goes black for a second or two at launch (HDMI mode change). Start it before the game; nothing is stored on the console.

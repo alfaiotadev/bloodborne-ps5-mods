@@ -3,9 +3,9 @@
 
 Usage:  python3 build_cheats.py [--out ../../cheats/CUSA03173_01.09.json] [--enable-all] [--profile default|quality|fps] [--fov-scale X] [--all-profiles]
   default      : release defaults (60 FPS / no motion blur / no chromatic aberration / skip intro ON, everything else OFF = opt-in)
-  --profile    : ready-made selections.  quality = default + Wide FOV x1.3 + DLAA 0.3;  fps = quality + FPS head camera + body-facing + lock-on aim + death slow motion (experimental); FOV x1.3 in third person, x1.5 in the first-person view
+  --profile    : ready-made selections.  quality = default + Wide FOV x1.3 + DLAA 0.3;  fps = quality + FPS head camera + body-facing + lock-on aim + death slow motion (experimental); FOV x1.3 in third person, x1.8 in the first-person view
   --fov-scale  : FOV multiplier of the Wide-FOV mod = third-person camera (default 1.3)
-  --fps-fov    : FOV multiplier used while the FPS head camera is on (default 1.5); the head-camera cave switches the Wide-FOV constant with the camera mode
+  --fps-fov    : FOV multiplier used while the FPS head camera is on (default 1.8); the head-camera cave switches the Wide-FOV constant with the camera mode
   --all-profiles : writes cheats/CUSA03173_01.09.json (default) and cheats/profiles/CUSA03173_01.09_{quality,fps}.json
   --enable-all : every mod enabled (used for end-to-end testing)
 Also verifies that no two mods write overlapping memory (code caves, data block and hooks) and that every hook has an 'off' value that restores the original bytes."""
@@ -21,7 +21,7 @@ if "--all-profiles" in args:
     sys.exit(0)
 profile = args[args.index("--profile") + 1] if "--profile" in args else "default"
 fov_scale = float(args[args.index("--fov-scale") + 1]) if "--fov-scale" in args else 1.3          # third-person FOV multiplier
-fps_fov = float(args[args.index("--fps-fov") + 1]) if "--fps-fov" in args else 1.5                       # FOV multiplier while the FPS head camera is on
+fps_fov = float(args[args.index("--fps-fov") + 1]) if "--fps-fov" in args else 1.8                       # FOV multiplier while the FPS head camera is on
 out = args[args.index("--out") + 1] if "--out" in args else os.path.join(HERE, "..", "..", "cheats", "CUSA03173_01.09.json")
 base = json.load(open(os.path.join(HERE, "data", "base_mods.json")))
 by = {m["name"]: m for m in base["mods"]}

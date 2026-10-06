@@ -881,8 +881,8 @@
    "memory": [
     {
      "offset": "054A0E04",
-     "on": "c00c0000000000007b142e3e0ad7a33e",
-     "off": "c00c0000000000007b142e3e0ad7a33e",
+     "on": "c00c0000000000009a99993e0ad7a33e",
+     "off": "c00c0000000000009a99993e0ad7a33e",
      "absolute": true
     },
     {
@@ -899,8 +899,8 @@
     },
     {
      "offset": "054A0E80",
-     "on": "5077d63cdfdeb93c",
-     "off": "5077d63cdfdeb93c",
+     "on": "fdad003ddfdeb93c",
+     "off": "fdad003ddfdeb93c",
      "absolute": true
     },
     {

@@ -236,7 +236,7 @@ Derived from `tools/mods/make_head_camera_mod.py` (defaults of `build()`); all f
 |---|---|---|---|---|---|
 | `+0x04` | `0x54A0E04` | BONEOFF | i32 | `0xCC0` (68*0x30) | head bone matrix offset |
 | `+0x08` | `0x54A0E08` | OFF_R | f32 | 0 | right offset (m) along the game camera's right row |
-| `+0x0C` | `0x54A0E0C` | OFF_U | f32 | 0.17 | up offset |
+| `+0x0C` | `0x54A0E0C` | OFF_U | f32 | 0.30 | up offset |
 | `+0x10` | `0x54A0E10` | OFF_F | f32 | 0.32 | forward offset |
 | `+0x14` | `0x54A0E14` | ARROFF | i32 | 0 (cave-owned) | working array-slot offset (self-healing); **not written by the cheat file** |
 | `+0x18` | `0x54A0E18` | LIMIT | f32 | 100.0 | squared max head-to-game-camera distance |
