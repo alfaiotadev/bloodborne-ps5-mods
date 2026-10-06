@@ -5,7 +5,7 @@
 ## Requirements
 
 - A PS5 that is already **jailbroken** and able to run payloads, **system software 12.40**. Setting up the jailbreak itself is outside the scope of this repository; see the projects listed in [CREDITS.md](../CREDITS.md) (WebKit autoloader, kstuff-lite, ps5-payload-dev elfldr, ...).
-- The **patched onionHEN** from [`../onionhen/`](../onionhen/) (prebuilt ELFs on the Releases page, checksums in `onionhen/SHA1SUMS`). It provides the cheat engine, the in-game cheat menu and the Toolbox, plus what these cheats rely on: applying cheats at game launch, a code-cave allocator for the extra code, execute-only page handling and the per-cheat `enabled` flag. Stock onionHEN does not have these and was **not** tested with this file; the code-cave mods (Wide FOV, DLAA, anisotropic, head camera) are not expected to work on it.
+- The **patched onionHEN** from [`../onionhen/`](../onionhen/) (prebuilt ELFs attached to the v1.1.0 release and unchanged since, checksums in `onionhen/SHA1SUMS`). It provides the cheat engine, the in-game cheat menu and the Toolbox, plus what these cheats rely on: applying cheats at game launch, a code-cave allocator for the extra code, execute-only page handling and the per-cheat `enabled` flag. Stock onionHEN does not have these and was **not** tested with this file; the code-cave mods (Wide FOV, DLAA, anisotropic, head camera) are not expected to work on it.
 - **Bloodborne Game of the Year Edition**, title id `CUSA03173`, **version 01.09** (the process is `eboot.bin`). Other versions/regions need different addresses.
 - An FTP client (or any way to copy a file to the console's `/data` partition).
 

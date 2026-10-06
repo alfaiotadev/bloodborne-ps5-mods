@@ -42,7 +42,7 @@ Details, numbers and the trade-offs of each mod: [docs/features.md](docs/feature
 
 ## Install in three steps
 
-1. Run a PS5 payload chain with the **patched onionHEN** from this repository on firmware 12.40 ([onionhen/](onionhen/); prebuilt files are on the Releases page). The patch adds what these cheats need: applying cheats at game launch, a safe code-cave allocator, execute-only page handling and the per-cheat `enabled` flag. Stock onionHEN lacks them and has **not** been tested with this cheat file.
+1. Run a PS5 payload chain with the **patched onionHEN** from this repository on firmware 12.40 ([onionhen/](onionhen/); the prebuilt ELFs are attached to the [v1.1.0 release](https://github.com/alfaiotadev/bloodborne-ps5-mods/releases/tag/v1.1.0) and have not changed since; checksums in `onionhen/SHA1SUMS`). The patch adds what these cheats need: applying cheats at game launch, a safe code-cave allocator, execute-only page handling and the per-cheat `enabled` flag. Stock onionHEN lacks them and has **not** been tested with this cheat file.
 2. Copy a cheat file to `/data/OnionHEN/cheats/CUSA03173_01.09.json` on the console (FTP): the safe default [`cheats/CUSA03173_01.09.json`](cheats/CUSA03173_01.09.json), or one of the ready-made **profiles** in [`cheats/profiles/`](cheats/profiles/) (`_quality`: FOV x1.3 + DLAA 0.3; `_fps`: that plus the experimental FPS head camera and lock-on aim, with FOV x1.8 while in first person). Rename the profile to `CUSA03173_01.09.json` when you copy it.
 3. Start Bloodborne. The "on" mods above are applied at launch; open the onionHEN cheat menu to toggle the rest (the shortcut is set in onionHEN's `config.ini`, section `[shortcuts]`, key `cheats_menu`; for example hold **Options**).
 
