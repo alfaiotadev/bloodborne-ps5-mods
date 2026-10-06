@@ -4,9 +4,11 @@
 With VRR 60 active the display follows the game's frame rate between 48 and 60 Hz. The game normally runs at a fixed
 60 FPS, so VRR has nothing to follow; a cap of, say, 55 FPS makes the benefit visible (steady 18.18 ms frames, display
 refresh 55 Hz). Below 48 FPS the display leaves the VRR window and its refresh readout starts to jump - keep the cap >= 48.
+With the 120 Hz link (vrr_watch.py --hz120 and vrr120_patch.py, see docs/vrr.md) caps up to 118 work with vsync on:
+100 gave a flat 10.00 ms frame time on the tested setup; on a plain 60 Hz link a cap above 60 changes nothing (vsync).
 
 Usage (PS5_HOST must be set, the game must be running with the 60 FPS mod on)
-  python3 fps_cap.py set 55      limit the game to 55 FPS (vsync stays on)
+  python3 fps_cap.py set 55      limit the game to 55 FPS (vsync stays on); 48..60 on the VRR 60 link, up to 118 on the 120 Hz link
   python3 fps_cap.py off         back to 60 FPS
   python3 fps_cap.py status      show the current cap and measure the frame times for 3 s
 
@@ -72,8 +74,10 @@ def main():
         raise SystemExit("the vsync site is not in its original state (an unlock experiment is active?) - restart the game")
     if cmd == "set":
         cap = float(sys.argv[2])
-        if not 20 <= cap <= 60:
-            raise SystemExit("cap must be between 20 and 60 (use 48..60 to stay inside the VRR window)")
+        if not 20 <= cap <= 118:
+            raise SystemExit("cap must be between 20 and 118 (inside the VRR window: 48..60, or 48..118 with the 120 Hz link)")
+        if cap > 60:
+            print("note: a cap above 60 only has an effect on the 120 Hz link (vrr_watch.py --hz120 + vrr120_patch.py)")
         if d.proc_read(pid, SIXTY_FPS_MOD_SITE, 1) != b"\xc3":
             raise SystemExit("the 60 FPS mod is not active (or this is not Bloodborne v1.09): refusing to touch the frame timer")
         d.proc_write(pid, LIMITER_IMM, struct.pack("<f", 1.0 / cap))

@@ -1,6 +1,6 @@
 # VRR for PS4 games - host tools
 
-Three small Python 3 tools that make the PS5 drive an HDMI-VRR display in **variable refresh rate (48-60 Hz)** while a **PS4 (backward-compatible) game** runs. They talk to the console through the **ps5debug** payload, like the tools in [`../dev`](../dev/README.md), and they reuse its `core/ps5dbg.py` client. Full explanation, safety notes and results: [`../../docs/vrr.md`](../../docs/vrr.md).
+Four small Python 3 tools that make the PS5 drive an HDMI-VRR display in **variable refresh rate** (**48-60 Hz**, or with the optional patch **48-120 Hz on a 119.88 Hz link**) while a **PS4 (backward-compatible) game** runs. They talk to the console through the **ps5debug** payload, like the tools in [`../dev`](../dev/README.md), and they reuse its `core/ps5dbg.py` client. Full explanation, safety notes and results: [`../../docs/vrr.md`](../../docs/vrr.md).
 
 > **Back up your save data first** (see [`docs/vrr.md`](../../docs/vrr.md#safety): the save was once flagged broken during the test session, cause unknown).
 >
@@ -10,6 +10,7 @@ Three small Python 3 tools that make the PS5 drive an HDMI-VRR display in **vari
 |---|---|
 | [`vrr_watch.py`](vrr_watch.py) | Start it **before** the game. It watches the system's per-app capability table and, as soon as a PS4 game appears, sets the "VRR supported" bit so the console switches the HDMI output to VRR 60 Hz when the game starts. |
 | [`fps_cap.py`](fps_cap.py) | Caps Bloodborne at a frame rate inside the VRR window (for example 55 FPS) so the display refresh visibly follows the game. Bloodborne v1.09 with the 60 FPS mod only. |
+| [`vrr120_patch.py`](vrr120_patch.py) | **Optional, more invasive:** `plan` / `apply` / `restore` of a three-part code patch in the system video service that makes the VRR link of a 1080p PS4 game `1080P_11988` (VRR 48-120 Hz). Use with `vrr_watch.py --hz120`. Writes code into a system process: read [`docs/vrr.md`](../../docs/vrr.md#120-hz-optional-more-invasive) first. |
 | [`avctl_attr.py`](avctl_attr.py) | Manual `scan` / `set` / `restore` of the capability record, for experiments. |
 
 ## Quick start
@@ -20,6 +21,16 @@ python3 tools/vrr/vrr_watch.py &            # 1. leave this running, then start 
                                             # 2. the screen goes black for a second or two at launch (HDMI mode change)
 python3 tools/vrr/fps_cap.py set 55         # 3. once in game: cap at 55 FPS (48..60 stays inside the VRR window)
 python3 tools/vrr/fps_cap.py off            #    back to the normal 60 FPS cap
+```
+
+120 Hz (optional, 1080p, see [`docs/vrr.md`](../../docs/vrr.md#120-hz-optional-more-invasive)):
+
+```sh
+python3 tools/vrr/vrr120_patch.py plan      # shows the state of the three patches, writes nothing
+python3 tools/vrr/vrr120_patch.py apply     # 1. with the game CLOSED
+python3 tools/vrr/vrr_watch.py --hz120 &    # 2. then start the PS4 game (black screen for a second or two)
+python3 tools/vrr/fps_cap.py set 100        # 3. in game: vsync stays on, 100 FPS (up to 118)
+python3 tools/vrr/vrr120_patch.py restore   # undo the code patch when you are done (a console restart also clears it)
 ```
 
 Stopping `vrr_watch.py` (Ctrl-C) or closing the game ends everything; nothing is stored on the console. After a console restart load ps5debug again and restart the watcher.

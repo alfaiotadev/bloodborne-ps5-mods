@@ -11,8 +11,9 @@ never anything else, and only in the process SceSysAvControl.elf. Nothing is per
 exits, and a console restart clears everything. Start it BEFORE the game; stop it with Ctrl-C.
 
 Usage
-  PS5_HOST=<console ip> python3 vrr_watch.py [--attr 8ae0057] [--dry-run] [--window ADDR:SIZE ...]
+  PS5_HOST=<console ip> python3 vrr_watch.py [--hz120 | --attr 8ae0057] [--dry-run] [--window ADDR:SIZE ...]
     --attr HEX       value written into the entries (default 0x08AE0057 = default | VRR supported, type A)
+    --hz120          0x08AA0057 = VRR supported and high frame rate allowed; use together with vrr120_patch.py (120 Hz)
     --dry-run        only report what would be written
     --window A:S     extra table window to poll (hex address:hex size); the built-in windows are for firmware 12.40
 
@@ -30,10 +31,13 @@ from ps5dbg import Dbg  # noqa: E402
 PROC_NAME = "SceSysAvControl.elf"
 PS4_DEFAULT_ATTR = 0x082E0057        # attr of every PS4 (BC) game seen so far: "no HDR/HFR/VR/VRR/8K"
 VRR_TYPE_A = 0x00800000              # bit: app supports VRR (type A); 0x01000000 would make it type B
+HFR_FORBIDDEN = 0x00040000           # bit: 120 Hz (HFR) forbidden; cleared by --hz120
 DEFAULT_TARGET = PS4_DEFAULT_ATTR | VRR_TYPE_A
+HZ120_TARGET = DEFAULT_TARGET & ~HFR_FORBIDDEN
 DATA_WINDOW = (0x4F9000, 0x1000)     # .data table of {key, appid, attr} dword triples, firmware 12.40
 SHM_NAME = "/SceAvControl"           # shared-memory copy of the table (found by name, whole mapping is polled)
-POLL_SECONDS = 0.02
+POLL_SECONDS = 0.02                  # waiting for a new session (it must be caught before the video mode is chosen)
+LIGHT_POLL_SECONDS = 1.0             # while a session with the target attr exists: far fewer requests to the console
 
 
 def log(msg):
@@ -83,9 +87,22 @@ def default_entries(d, pid, wins):
     return hits
 
 
+def target_alive(d, pid, wins, target):
+    pat = struct.pack("<I", target)
+    for base, size in wins:
+        b = d.proc_read(pid, base, size)
+        i = b.find(pat) if b else -1
+        while i != -1:
+            if i >= 8 and i % 4 == 0 and struct.unpack_from("<I", b, i - 4)[0] not in (0, 0xFFFFFFFF):
+                return True
+            i = b.find(pat, i + 1)
+    return False
+
+
 def main():
     args = sys.argv[1:]
-    target = int(args[args.index("--attr") + 1], 16) if "--attr" in args else DEFAULT_TARGET
+    target = (int(args[args.index("--attr") + 1], 16) if "--attr" in args
+              else HZ120_TARGET if "--hz120" in args else DEFAULT_TARGET)
     dry = "--dry-run" in args
     extra = [(int(a, 16), int(s, 16)) for a, s in (w.split(":") for w in
              [args[i + 1] for i, x in enumerate(args) if x == "--window"])]
@@ -93,6 +110,7 @@ def main():
     pid = None
     wins = None
     checked = False
+    light = False
     log("vrr_watch started: target attr 0x%08X%s" % (target, " (dry run)" if dry else ""))
     while True:
         try:
@@ -107,6 +125,7 @@ def main():
                         log("WARNING: the built-in table window does not look like the capability table "
                             "(other firmware?). Run avctl_attr.py scan while a PS4 game runs and pass --window.")
                     checked = True
+                light = target_alive(d, pid, wins, target)   # restarted while the game runs: start in the light mode
             hits = default_entries(d, pid, wins)
             if hits:
                 for addr, _key, _appid in hits:
@@ -116,7 +135,12 @@ def main():
                     % (hits[0][2], PS4_DEFAULT_ATTR, target, len(hits), " (not written)" if dry else ""))
                 if dry:
                     time.sleep(1.0)
-            time.sleep(POLL_SECONDS)
+                else:
+                    light = True
+            elif light and not target_alive(d, pid, wins, target):
+                light = False
+                log("session ended, polling for the next one")
+            time.sleep(LIGHT_POLL_SECONDS if light else POLL_SECONDS)
         except KeyboardInterrupt:
             log("stopped")
             return

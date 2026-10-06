@@ -50,7 +50,7 @@ Companion options (both need the head camera):
 
 ## VRR for PS4 games (host tool, not a cheat)
 
-Not part of the cheat file: [`tools/vrr`](../tools/vrr/README.md) enables VRR (48-60 Hz) for the running PS4 game by editing the system video service's capability record, and caps Bloodborne's frame rate inside the VRR window. Results, usage, limits and safety: [vrr.md](vrr.md). Tested only on firmware 12.40, a PS5 Pro, Bloodborne and one display; it does not give more than 60 Hz.
+Not part of the cheat file: [`tools/vrr`](../tools/vrr/README.md) enables VRR for the running PS4 game by editing the system video service's capability record (48-60 Hz), optionally switches the link to 1080p 119.88 Hz VRR (48-120 Hz) with a three-part code patch in the same service, and caps Bloodborne's frame rate inside the VRR window (up to 118 FPS on the 120 Hz link). Results, usage, limits and safety: [vrr.md](vrr.md). Tested only on firmware 12.40, a PS5 Pro, Bloodborne and one display.
 
 ## Profiles
 

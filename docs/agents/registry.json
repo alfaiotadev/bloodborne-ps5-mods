@@ -2313,7 +2313,7 @@
     "name": "OFF_U",
     "type": "f32",
     "size": 4,
-    "default": 0.30,
+    "default": 0.3,
     "description": "Up offset in metres along the camera up row (0.30).",
     "initialised_by": "cheat entry at 0x54A0E04 (16 bytes: BONEOFF, OFF_R, OFF_U, OFF_F)"
    },
@@ -3215,7 +3215,7 @@
      },
      "0x00040000": {
       "meaning": "HFR (120 Hz) forbidden",
-      "confidence": "inferred; clearing it alone changed nothing"
+      "confidence": "confirmed-live as a prerequisite: cleared in the 120 Hz setup (alone it changed nothing, the timing choice also had to be patched)"
      },
      "0x00000040": {
       "meaning": "HDR forbidden",
@@ -3233,13 +3233,14 @@
       "meaning": "app suspended",
       "confidence": "static-only"
      }
-    }
+    },
+    "hz120_value": "0x08AA0057 (VRR supported, HFR allowed; used with vrr120_patch.py)"
    },
    "refresh_enum": {
     "3": "59.94 Hz (confirmed-live)",
     "6": "29.97 Hz (static-only)",
     "0xd": "119.88 Hz (static-only)",
-    "vrr_flag": "0x8000 OR'd on the enum (0x8003 VRR 60 confirmed-live; 0x800d VRR 120 static-only)"
+    "vrr_flag": "0x8000 OR'd on the enum (0x8003 VRR 60 and 0x800d VRR 119.88 both confirmed-live)"
    },
    "functions_static_only": {
     "0x42ebc0": "app info log printer (decodes attr)",
@@ -3252,7 +3253,35 @@
     "0x40ccb0": "video request handler ('v-request')",
     "0x443e40": "IPC change-output-mode handler",
     "0x424b6d": "prints the video line and 'VRR(peg range) capable(...)'",
-    "0x43f160": "large mode selection that reads the HFR/VRR/TypeB/boost bits (not analysed)"
+    "0x43f160": "large mode selection that reads the HFR/VRR/TypeB/boost bits (not analysed)",
+    "0x424b20": "video status printer wrapper (log line video: port ...); reads the qword at [record+0xc], byte +0xd = timing id",
+    "0x42ae50": "mapper: requested mode (res [req+0x14], refresh [req+0x10]) -> timing id (res table 0x4dc8a0, refresh table 0x4dccdc; 1080p: refresh 3 -> id 8 at 0x42bb42, 0xd -> 0x2e at 0x42bb37)",
+    "0x42d690": "VRR converter: 3/9 -> 0x8003, 0xd/0xe -> 0x800d, VRR marker, range, peg 0x3c; does not touch the timing id"
+   },
+   "timing_table": {
+    "names_table": "0x4dbac8 (relative int32 offsets, index = timing id, byte +0xd of the hardware mode record)",
+    "8": "1080P_5994 (confirmed-live)",
+    "0x2e": "1080P_11988 (confirmed-live)",
+    "0x29": "1080P_5994_VR (static-only)",
+    "0x2a": "1080P_11988_VR (static-only)",
+    "0x36": "2160P_11988 (static-only)"
+   },
+   "patch_120hz": {
+    "tool": "tools/vrr/vrr120_patch.py",
+    "confidence": "confirmed-live (1080p, one display)",
+    "P1": {
+     "address": "0x42D87E",
+     "bytes": "03800000 -> 0d800000"
+    },
+    "P2": {
+     "address": "0x4A2844",
+     "bytes": "32-byte code cave in int3 padding (60 bytes free)"
+    },
+    "P3": {
+     "address": "0x42D88E",
+     "bytes": "804b04804589dc -> e9b14f07006690 (jmp to P2, nop)"
+    },
+    "applies_to": "apps the VRR converter allows VRR for (attr bit 0x00800000)"
    }
   }
  }

@@ -25,4 +25,4 @@
 
 ## VRR tools
 
-The VRR tools in [`tools/vrr`](../tools/vrr/README.md) were tested on the same console and firmware (PS5 Pro, 12.40) with Bloodborne and one HDMI monitor (1080p, FreeSync Premium, the console reported VRR range 48-240 Hz, ALLM supported; PS5 settings VRR, 120 Hz output and ALLM on Automatic, *Apply to Unsupported Games* on). Other PS4 games, other displays or TVs, other firmware and the base PS5 are untested. Details: [vrr.md](vrr.md).
+The VRR tools in [`tools/vrr`](../tools/vrr/README.md) were tested on the same console and firmware (PS5 Pro, 12.40) with Bloodborne and one HDMI monitor (1080p, FreeSync Premium, the console reported VRR range 48-240 Hz, ALLM supported; PS5 settings VRR, 120 Hz output and ALLM on Automatic, *Apply to Unsupported Games* on). The 120 Hz patch (`vrr120_patch.py`) was tested on the same setup only (1080p, link `1080P_11988`, VRR range 48-120 Hz). Other PS4 games, other displays or TVs, other firmware and the base PS5 are untested. Details: [vrr.md](vrr.md).
