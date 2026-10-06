@@ -226,7 +226,7 @@ judged on the console; the other effects in the table follow from the code.
 | Value | Effect of raising it | Notes |
 |-------|----------------------|-------|
 | `OFF_U` (0.30) | Camera higher above the head-bone position | Default 0.30 since v1.2.0 (0.17 before; the view felt too low). With 0.17 / 0.22 the weapons are visible in the hands and the hood is out of the picture; 0.30 together with FOV x1.8 keeps the weapons well visible (maintainer's choice) |
-| `OFF_F` (0.32) | Camera further forward | The forward shift that keeps the hood and the face out of the picture (0.22 let the face poke in front of the camera when walking) |
+| `OFF_F` (0.32) | Camera further forward | The forward shift that keeps the hood and the face out of the picture (0.22 let the face poke in front of the camera when walking). **Without head gear** (tested with the head slot empty instead of the Black Hood) the camera can sit further back: 0.08 was clean, 0.05 stayed clean even in hard movement and visceral attacks, 0.02 let the hair flicker into view. Hood items are not covered by the FACE2 cloth side effect, so with a hood keep 0.32 |
 | `HMIN` (1.25) | Camera never lower than origin + `HMIN` | Must stay below the standing head height (about 1.53 m) or the floor acts while walking |
 | `ALPHA` (0.5) | Faster smoothing (less lag, more visible 30 Hz stepping) | 1.0 = no smoothing |
 | `SNAP2` (1.0) | Larger offset jumps are smoothed instead of snapped | Hard-reset threshold for the first frame and for slot changes |
