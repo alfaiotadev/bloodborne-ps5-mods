@@ -97,6 +97,13 @@ When the video owner switches to a new app, the service computes the output mode
 
 Technical details, addresses, the mode structure and the experiment log: [agents/75-avcontrol-vrr.md](agents/75-avcontrol-vrr.md).
 
+## Is this specific to Bloodborne?
+
+* **`vrr_watch.py` and `vrr120_patch.py` contain nothing game-specific.** The watcher changes the capability record of every new session whose record is exactly the PS4 default (every PS4 game seen had it), and the 120 Hz patch changes the timing choice for every VRR-enabled 1080p PS4 session. In principle any backward-compatible game gets the VRR link; in practice **only Bloodborne was tested** (two app ids of the same game). Whether other games, or games at other output resolutions, behave is unknown.
+* **A VRR link only helps a game whose frame rate varies or exceeds 60 FPS.** Most PS4 games lock their frame rate to 30 or 60 FPS in their own frame limiter, so there is nothing for the display to follow, and exceeding 60 FPS needs a game-specific change of that limiter (for Bloodborne: the community 60 FPS patch plus `fps_cap.py`).
+* **`fps_cap.py` is Bloodborne-specific** (v01.09 addresses, and it refuses to run without the 60 FPS mod).
+* **Everything is firmware-specific:** the addresses are for system software 12.40; the tools check them and refuse or warn on another build.
+
 ## Safety
 
 * The tools **read and write memory of a system process**. Reading it with ps5debug worked without problems. The writes are narrow (a 32-bit field in entries that hold exactly the PS4 default; `avctl_attr.py set` only touches the dwords its own scan found), but an unexpected value could confuse the video pipeline until the console is restarted. Use them at your own risk, on your own console.
