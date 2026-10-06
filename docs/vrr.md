@@ -12,7 +12,7 @@ On a PS5, PS4 games run in backward-compatibility (BC) mode. In the tested setup
 
 ## What was observed
 
-Setup: PS5 Pro, firmware 12.40, HDMI to a 1080p FreeSync Premium monitor that the console reported as VRR-capable (range 48-240 Hz) and ALLM-capable; PS5 settings *VRR*, *120 Hz output* and *ALLM* on **Automatic**, *Apply to Unsupported Games* **on**. Bloodborne with the 60 FPS mod.
+Setup: PS5 Pro, firmware 12.40, HDMI to a 1080p FreeSync Premium monitor that the console reported as VRR-capable (range 48-240 Hz) and ALLM-capable, with an **HDFury 8K Arcana** (40 Gbps HDMI signal analyser and audio extractor with VRR pass-through, used to feed Dolby Atmos to a soundbar) in the HDMI path between the console and the soundbar; the capabilities the console reported are those it saw through that device, and the results may differ on a direct connection; PS5 settings *VRR*, *120 Hz output* and *ALLM* on **Automatic**, *Apply to Unsupported Games* **on**. Bloodborne with the 60 FPS mod.
 
 1. **Without the tools** the monitor's refresh readout stayed at 60 Hz when the game was limited to 45 and to 30 FPS, and the console log showed no ALLM or VRR event at launch: the game was not driven with VRR, although *Apply to Unsupported Games* was on. The capability record of the game in the system video service read `attr=0x82e0057` with `VRR:x`.
 2. **With the "VRR supported" bit set** (`attr=0x8ae0057`, `VRR:TypeA`) the video service re-evaluated the output and logged:
