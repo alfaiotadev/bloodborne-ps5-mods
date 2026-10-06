@@ -2,7 +2,11 @@
 
 Image-quality and gameplay mods for **Bloodborne** (Game of the Year Edition, `CUSA03173`, v01.09) on a **jailbroken PS5**, delivered as **onionHEN cheats** that you switch on and off from the in-game cheat menu. No `eboot.bin` rewriting, no game files touched: the patches are applied to the running game at start-up.
 
-Highlights: 60 FPS, no motion blur / chromatic aberration, sharper anti-aliasing, wide FOV, and an experimental **first-person camera bolted to the character's head**.
+Highlights: 60 FPS, no motion blur / chromatic aberration, sharper anti-aliasing, wide FOV, an experimental **first-person camera bolted to the character's head**, and (host tools, not a cheat) **VRR up to 120 Hz for PS4 games**.
+
+![Bloodborne title screen at 120 Hz VRR on a PS5 Pro: the onionHEN overlay shows the frame rate, the monitor's own counter shows 120, and the signal analyser in the HDMI path reads 1080p VRR, 442 MHz, RGB 12 bit, ALLM](site/assets/media/vrr-120hz-display.jpg)
+
+*Bloodborne on a PS5 Pro at **120 Hz VRR** (1080p), photographed off the display: the onionHEN overlay (top left), the monitor's own counter (top right: 120) and the HDFury signal overlay in the HDMI path (bottom left: 1080p VRR, 442 MHz, RGB 12 bit, ALLM). The 120 Hz link comes from the optional host tools in [`tools/vrr`](tools/vrr/README.md), see [docs/vrr.md](docs/vrr.md).*
 
 > **Read this first: tested on firmware 12.40 and a PS5 Pro only.**
 > Everything here was developed and measured on a **PS5 Pro, system software 12.40**. Behaviour and performance on a **base PS5 (or Slim / Digital)** and on other firmware versions are **unknown** - the 60 FPS patch and anything that changes GPU/CPU load in particular may behave differently. Reports from other consoles are very welcome (see the issue templates). Use at your own risk, on a console and a game copy you own. This project is **not affiliated with or endorsed by** Sony Interactive Entertainment, FromSoftware, onionHEN or any other party named in [CREDITS.md](CREDITS.md). See [docs/compatibility.md](docs/compatibility.md).
